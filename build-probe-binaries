@@ -22,7 +22,7 @@
 # The precompiled binary is then obtained at runtime by sysdig-probe-loader
 # Ideally, the community should expand this stuff with better support
 #
-set -euo pipefail
+set -xeuo pipefail
 
 ARTIFACTORY_SERVER=
 ARTIFACTORY_KEY=
@@ -208,12 +208,24 @@ else
 	SYSDIG_TAG="${PROBE_DEVICE_NAME}/${PROBE_VERSION}"
 fi
 
+# The previously released versions of sysdig, falco, and the agent
+# don't have one of the necessary changes that this script requires
+# (namely, the ability to run cmake from the sysdig directory but
+# specify PROBE_NAME, PROBE_VERSION, and PROBE_DEVICE_NAME). Rather
+# than change what was in the tag we made modified tags x.y.z-cfgprobe
+# that include the sysdig version x.y.z but also one additional commit
+# that allows making the probe name/version/etc configurable.
+
+if [ $SYSDIG_TAG = "0.24.1" ] || [ $SYSDIG_TAG = "agent/0.85.1" ] || [ $SYSDIG_TAG = "falco/0.12.1" ]; then
+	SYSDIG_TAG="${SYSDIG_TAG}-cfgprobe"
+fi
+
 function checkout_sysdig {
 	if [ -z "$HAVE_SYSDIG_CHECKOUT" ]
 	then
 		rm -rf $SYSDIG_DIR
 		mkdir -p $SYSDIG_DIR
-		git clone git@github.com:draios/agent-libs.git $SYSDIG_DIR
+		git clone git@github.com:draios/sysdig.git $SYSDIG_DIR
 		(cd $SYSDIG_DIR && git checkout $SYSDIG_TAG)
 	fi
 	HAVE_SYSDIG_CHECKOUT=1
@@ -501,7 +513,7 @@ function ubuntu_build {
 		else
 			echo "Unpacking $DEB to $TARGET"
 			mkdir -p $TARGET
-			dpkg -x $DEB $TARGET
+			docker run -v $(pwd)/$DEB:/$DEB:ro -v $(pwd)/$TARGET:/output:rw ubuntu:latest dpkg -x /$DEB /output
 			touch $MARKER
 		fi
 	done
