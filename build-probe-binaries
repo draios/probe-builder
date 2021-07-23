@@ -305,7 +305,7 @@ function build_probe_impl {
 				# RHEL6
 				BUILDER_GCC_VERSION=$(grep -Po '(?<=^#define LINUX_COMPILER "gcc version )[0-9.]+' $KERNELDIR/include/linux/compile.h || true)
 			else
-				# ancient Ubuntu gets and ancient compiler
+				# ancient Ubuntu gets an ancient compiler
 				BUILDER_GCC_VERSION=4.8.0
 			fi
 		fi
