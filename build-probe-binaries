@@ -286,6 +286,9 @@ function build_probe_impl {
 		if [ -e $KERNELDIR/include/generated/autoconf.h ]
 		then
 			BUILDER_GCC_VERSION=$(grep -Po '(?<=^#define CONFIG_GCC_VERSION ).*' $KERNELDIR/include/generated/autoconf.h | sed '-res@(.*)(..)(..)$@\1\.\2\.\3@' '-es@\.0@\.@g')
+		elif [ -e $KERNELDIR/include/config/auto.conf ]
+		then
+			BUILDER_GCC_VERSION=$(grep -Po '(?<=^CONFIG_GCC_VERSION=).*' $KERNELDIR/include/config/auto.conf | sed '-res@(.*)(..)(..)$@\1\.\2\.\3@' '-es@\.0@\.@g')
 		else
 			BUILDER_GCC_VERSION=
 		fi
@@ -716,6 +719,66 @@ function debian_build {
 	done
 }
 
+function photonos_build {
+	BUILDER_DISTRO=${BUILDER_DISTRO:-centos}
+	for RPM in "$@"
+	do
+		RPM_FILE=$(basename $RPM)
+		KERNEL_VARIANT=$(echo $RPM_FILE | sed -r 's/linux-(aws|esx|rt)?.*/\1/')
+		[ -n "$KERNEL_VARIANT" ] && KERNEL_VARIANT="-${KERNEL_VARIANT}"
+		TRAILER_PATTERN=$(echo $RPM_FILE | rev | awk -F '.' '{print $1".\\"$2".\\"}' | rev)
+		KERNEL_VERSION=$(echo $RPM_FILE | sed "s/$TRAILER_PATTERN//; s/^[^0-9]*//")
+
+		KERNEL_RELEASE=${KERNEL_VERSION}${KERNEL_VARIANT}
+
+		TARGET=build/$DISTRO/$KERNEL_RELEASE
+		MARKER=$TARGET/.$RPM_FILE
+		if [ -e $MARKER ]
+		then
+			echo "$RPM already unpacked in $TARGET"
+		else
+			echo "Unpacking $RPM to $TARGET"
+			mkdir -p $TARGET
+			FULL_RPM=$(readlink -f "$RPM")
+			FULL_TARGET=$(readlink -f "$TARGET")
+			run_toolkit -v "$FULL_RPM:$FULL_RPM:ro" -v "$FULL_TARGET:$FULL_TARGET" -- rpm "$FULL_RPM" "$FULL_TARGET"
+			touch $MARKER
+		fi
+	done
+
+	for RPM in "$@"
+	do
+		RPM_FILE=$(basename $RPM)
+		KERNEL_VARIANT=$(echo $RPM_FILE | sed -r 's/linux-(aws|esx|rt)?.*/\1/')
+		[ -n "$KERNEL_VARIANT" ] && KERNEL_VARIANT="-${KERNEL_VARIANT}"
+		TRAILER_PATTERN=$(echo $RPM_FILE | rev | awk -F '.' '{print $1".\\"$2".\\"}' | rev)
+		KERNEL_VERSION=$(echo $RPM_FILE | sed "s/$TRAILER_PATTERN//; s/^[^0-9]*//")
+
+		KERNEL_RELEASE=${KERNEL_VERSION}${KERNEL_VARIANT}
+
+		TARGET=build/$DISTRO/$KERNEL_RELEASE
+
+		HASH=$(md5sum $TARGET/boot/config-* | cut -d' ' -f1)
+		HASH_ORIG=$HASH
+
+		# Naming is not consistent at all:
+		# - linux-headers-5.10.4-16.ph4
+		# - linux-headers-5.10.46-2.ph4-esx
+		# - linux-aws-headers-5.10.4-4.ph4-aws
+		# - linux-rt-headers-5.10.4-rt22-9.ph4-rt
+		# so we just take it with ls
+		HEADERDIR=$(ls $BASEDIR/$TARGET/usr/src/)
+		# Quirkiness didn't end.
+		# As you might have noticed, rt variants have an extra suffix,
+		# and that's part of the actual kernel name being used in KO_VERSION
+		# so we must take that one:
+		KERNEL_RELEASE=$(echo $HEADERDIR | sed 's/[^0-9]*//')
+		export KERNELDIR=$BASEDIR/$TARGET/usr/src/$HEADERDIR
+		echo "Building probe for PhotonOS kernel $KERNEL_RELEASE"
+		build_probe
+	done
+}
+
 function build_group_ubuntu {
 	#
 	# Ubuntu build
@@ -951,6 +1014,25 @@ function build_group_rhel {
 	rhel_build $DISTRO/*.rpm
 }
 
+function build_group_photonos {
+	#
+	# RHEL build through PhotonOS
+	#
+
+	DISTRO=photonos
+	BUILDER_DISTRO=centos
+	if [ "$DOWNLOAD_CONCURRENCY" != "0" ]
+	then
+		echo Downloading PhotonOS kernels
+		DIR=$(dirname $(readlink -f $0))
+		mkdir -p $DISTRO
+		$DIR/kernel-crawler.py PhotonOS | xargs -n 1 -P $DOWNLOAD_CONCURRENCY wget -c -nv --timeout=${DOWNLOAD_TIMEOUT} --tries=${RETRIES} -P $DISTRO
+	fi
+
+	echo Building PhotonOS
+	photonos_build $DISTRO/*.rpm
+}
+
 function build_everything {
 	build_group_rhel
 	build_group_ubuntu
@@ -1018,6 +1100,10 @@ case "$KERNEL_TYPE" in
 	RHEL)
 		checkout_sysdig
 		build_group_rhel
+		;;
+	PhotonOS)
+		checkout_sysdig
+		build_group_photonos
 		;;
 	CustomCentOS)
 		checkout_sysdig
