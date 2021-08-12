@@ -2,7 +2,33 @@
 
 The probe builder can be used to automatically build kernel modules for [OSS Sysdig](https://github.com/draios/sysdig) as well as the [commercial Sysdig agent](https://sysdig.com/). It can run on any host with Docker installed, including (with some preparation) air-gapped hosts.
 
-The description below assumes that we need to build probes for agent 12.0.0 (substitute the version as required) for RHEL/CentOS kernels. Whenever kernel packages are mentioned, it means kernel-VERSION.rpm and kernel-devel-VERSION.rpm files (with matching VERSION). A similar process can be used for Ubuntu kernels (linux-image-VERSION.deb, linux-headers-VERSION.deb and possibly others) with the -k CustomUbuntu option in place of -k CustomCentOS.
+The description below assumes that we need to build probes for:
+* agent 12.0.0 (substitute the version as required) 
+* for RHEL/CentOS kernels (for Ubuntu/Debian kernels use -k CustomUbuntu option instead of -k CustomCentOS).
+
+## Common preliminary steps
+
+### Create (if it doesn't exist)  /a-directory-with-some-free-space
+Notes:
+* Customize the full folder name and path "/a-directory-with-some-free-space" with your selected folder  
+
+### Create a second folder /directory-containing-kernel-packages and download required kernel packages inside it
+Kernel packages required are:
+* For RHEL/CentOS: kernel-VERSION.rpm and kernel-devel-VERSION.rpm files  
+* For Ubuntu/Debian: linux-image-VERSION.deb and linux-headers-VERSION.deb
+
+Notes:
+* Customize the full folder name and path "/directory-containing-kernel-packages" with your selected folder  
+* VERSION is the kernel version, that can be checked using uname -r command.
+* Packages should not be unpacked or installed
+
+E.g: Packages to be downloaded inside /directory-containing-kernel-packages:
+1. For a CentOS-8 x86_64 and 4.18.0-305.10.2.el8_4.x86_64 kernel version:
+* kernel-4.18.0-305.10.2.el8_4.x86_64.rpm
+* kernel-devel-4.18.0-305.10.2.el8_4.x86_64.rpm
+2. For an Ubuntu-20.04 x86_64 and 5.11.0-25-generic kernel version:
+* linux-headers-5.11.0-25-generic_5.11.0-25.27_amd64.deb
+* linux-image-unsigned-5.11.0-25-generic_5.11.0-25.27~20.04.1_amd64.deb
 
 ## With internet access
 
