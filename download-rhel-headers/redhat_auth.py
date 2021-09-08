@@ -1,3 +1,4 @@
+import logging
 import requests.auth
 import threading
 from requests.cookies import extract_cookies_to_jar
@@ -27,7 +28,7 @@ class RedHatTokenAuth(requests.auth.AuthBase):
 
     def refresh_access_token(self):
         s = requests.Session()
-        # print("\n***Refreshing access token!***")
+        logging.info("Refreshing RedHat access token")
         url = RHAPI_AUTH_URL
         data = {
             "grant_type": "refresh_token",
@@ -39,18 +40,13 @@ class RedHatTokenAuth(requests.auth.AuthBase):
 
         # Try to provide some meaningful information in the most common case (wrong token)
         if response.status_code == 400:
-            raise requests.exceptions.HTTPError(
-                "400 Client Error: while trying to obtain access/online token, provided offline token is invalid or expired",
-                response=response,
-            )
-
-        # Raise the default exception in all other
-        response.raise_for_status()
+            msg = "400 Client Error: while trying to obtain access/online token, provided offline token is invalid or expired"
+            logging.error(msg)
+            raise requests.exceptions.HTTPError(msg, response=response)
 
         js = response.json()
-        # print(js)
         self._thread_local.access_token = js["access_token"]
-        # print("Access token successfully refreshed!")
+        logging.info("RedHat access token successfully refreshed")
 
     def set_auth_header(self, r):
         r.headers["Authorization"] = "Bearer {}".format(self._thread_local.access_token)
@@ -73,7 +69,8 @@ class RedHatTokenAuth(requests.auth.AuthBase):
             self._thread_local.num_401_calls = 1
             return r
 
-        print("\n***Received 401!***")
+        logging.info("Received '{} {}' from {}".format(r.status_code, r.reason, r.request.url))
+
         if self._thread_local.num_401_calls < 2:
             self._thread_local.num_401_calls += 1
 

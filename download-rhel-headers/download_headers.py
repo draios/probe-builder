@@ -8,6 +8,7 @@ import sys
 import time
 import re
 import argparse
+import logging
 
 RHAPI_BASE_URL = "https://api.access.redhat.com/management/v1"
 DEFAULT_RPM_BUCKETS = [
@@ -24,14 +25,9 @@ MAX_RETRIES = 10
 MAX_REDIRECTS = 10
 
 
-def log(str):
-    if not args.quiet:
-        print(str)
-
-
-def dbg(str):
-    if args.verbose:
-        print(str)
+def progress(string):
+    if args.interactive:
+        print(string, end="", file=sys.stderr, flush=True)
 
 
 def pkg_name(pkg):
@@ -64,32 +60,64 @@ def https_download_file(auth, url, ofname, accept="application/octet-stream", ex
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--redhat-token", help="RedHat token", required=True)
 parser.add_argument(
-    "-b", "--redhat-bucket", dest="buckets", action="append", default=[], help="Redhat bucket(s) to scrape"
+    "-b",
+    "--redhat-bucket",
+    dest="buckets",
+    action="append",
+    default=[],
+    help="Redhat bucket(s) to scrape",
 )
-parser.add_argument("-a", "--artifactory-server", help="Artifactory server")
+parser.add_argument("-a", "--artifactory-base-url", help="Artifactory base url")
 parser.add_argument("-A", "--artifactory-key", help="Artifactory API key")
 parser.add_argument("-q", "--quiet", action="store_true")
 parser.add_argument("-v", "--verbose", action="store_true")
+parser.add_argument("-i", "--interactive", help="Interactive output to stderr", action="store_true")
 parser.add_argument("-o", "--outdir", help="Output directory", default=".")
 
 args = parser.parse_args()
+
+# Provide default for buckets
 if not args.buckets:
     args.buckets = DEFAULT_RPM_BUCKETS
 
-# print(args)
+if args.verbose:
+    level = logging.DEBUG
+elif not args.quiet:
+    level = logging.INFO
+else:
+    level = logging.WARNING
+
+logging.basicConfig(
+    stream=sys.stdout,
+    level=level,
+    # format="[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s",
+    format="[%(asctime)s] %(levelname)s - %(message)s",
+)
+
+# Check if the output directory exists
+if not os.path.isdir(args.outdir):
+    sys.exit("Output directory '{}' ({}) does not exist. Aborting.".format(args.outdir, os.path.abspath(args.outdir)))
 
 redhat_auth = RedHatTokenAuth(args.redhat_token)
 
 art_helper = None
-if args.artifactory_server and args.artifactory_key:
-    base_url = "https://{artifactory_server}/artifactory".format(artifactory_server=args.artifactory_server)
-    art_helper = ArtifactoryHelper(base_url=base_url, bucket=ARTIFACTORY_BUCKET, apikey=args.artifactory_key)
-
+art_list = None
+if args.artifactory_base_url and args.artifactory_key:
+    art_helper = ArtifactoryHelper(
+        base_url=args.artifactory_base_url, bucket=ARTIFACTORY_BUCKET, apikey=args.artifactory_key
+    )
+    # This has a double purpose:
+    # 1) pre-fetch the list of artifacst so it's only done once
+    # 2) validate Artifactory credentials so to avoid a later failure
+    art_list = art_helper.list_artifacts()
+elif args.artifactory_base_url or args.artifactory_key:
+    sys.exit("Only one of --artifactory-base-url and --artifactory-key provided, but not both. Bailing out.")
 packages = {}
 s = requests.Session()
 
 for bucket in args.buckets:
-    print(bucket, end="")
+    logging.info("Scraping bucket {}".format(bucket))
+    progress(bucket)
     # There's no search API, so walk every single package in the repository
     done = False
     offset = 0
@@ -112,17 +140,18 @@ for bucket in args.buckets:
             retries += 1
             msg = "Encountered error {}: {}. ".format(j["error"]["code"], {j["error"]["message"]})
             if retries < MAX_RETRIES:
-                log(msg + "Attempting retry")
+                logging.warning(msg + "Attempting retry")
                 time.sleep(5)
                 continue
             else:
-                log(msg + "Aborting")
+                logging.critical(msg + "Aborting")
                 sys.exit(-2)
 
         # Determine whether we need to keep going or if we're at the end of the package list
         pag = j["pagination"]
         if not pag:
-            sys.exit("Got mal-formed JSON response:" + j)
+            logging.critical("Got mal-formed JSON response:" + str(j))
+            sys.exit(-2)
 
         if pag["count"] < pag["limit"]:
             done = True  # terminate
@@ -137,30 +166,26 @@ for bucket in args.buckets:
                 continue
             # build rpm name from the data received from the server
             pname = pkg_name(p)
-            # REMOVEME
-            # pname += "DELETEME." + pname
-            # add {pkg.rpm: url, sha256} to map
+            # add mapping pkg.rpm -> (url, sha256) to packages
             packages[pname] = {"url": p["downloadHref"], "sha256": p["checksum"]}
 
         # Print a little status update so it doesn't look like we've gone out to lunch
-        print(".", end="")
-        sys.stdout.flush()
-    print("")
+        progress(".")
+    progress("\n")
+    logging.info("Done scraping bucket {}".format(bucket))
     # end of while not done
 
     # Diff the list with what's already in artifactory and only keep the delta
     if art_helper:
-        # get a dictionary of RPMs -> SHA256 already present in artifactory
-        art_list = art_helper.list_artifacts()
         # try to remove them if present in our list
         for rpm, sha256 in art_list.items():
             if rpm in packages:
                 # check SHA
                 if packages[rpm]["sha256"] != sha256:
-                    log("{rpm} is already in artifactory, but sha256's do not match!".format(rpm=rpm))
+                    logging.warning("{rpm} is already in artifactory, but sha256's do not match!".format(rpm=rpm))
                 else:
                     del packages[rpm]
-                    dbg("{rpm} is already in artifactory and is identical, pruning it".format(rpm=rpm))
+                    logging.info("{rpm} is already in artifactory and is identical, pruning it".format(rpm=rpm))
 
     # Download packages, unless already present in local filesystem
     outdir = args.outdir
@@ -173,38 +198,55 @@ for bucket in args.buckets:
                 readable_hash = hashlib.sha256(bytes).hexdigest()
                 if readable_hash != pkg["sha256"]:
                     # We already downloaded the file, but it changed on the server
-                    log("A local {fn} exists but checksums differ. Deleting local and redownloading".format(fn=fn))
+                    logging.warning(
+                        "A local {fn} exists but checksums differ. Deleting local and redownloading".format(fn=fn)
+                    )
                     os.unlink(fn)
                 else:
-                    dbg("A local {fn} exists and checksums match, so it will not be downloaded.".format(fn=fn))
+                    logging.info(
+                        "A local {fn} exists and checksums match, so it will not be downloaded.".format(fn=fn)
+                    )
                     do_download = False
 
         if do_download:
             num_retries = 0
-            log("Downloading {}".format(pn))
+            progress("v")
+            logging.info("Downloading {}".format(pn))
             # We need to retry because sometimes the download server has a sulk
             while num_retries < MAX_RETRIES:
                 try:
-                    resp = https_download_file(auth=redhat_auth, url=pkg["url"], ofname=fn, exp_sha256=pkg["sha256"])
-                    log("Success")
+                    resp = https_download_file(
+                        auth=redhat_auth,
+                        url=pkg["url"],
+                        ofname=fn,
+                        exp_sha256=pkg["sha256"],
+                    )
+                    logging.info("Successfully downloaded {}".format(pn))
                     break
                 except requests.exceptions.HTTPError as e:
                     num_retries += 1
-                    log(
+                    logging.warning(
                         "Error {status} while downloading {pn}, retrying attempt #{num_retries}/{MAX_RETRIES}".format(
-                            status=e.response.status_code, pn=pn, num_retries=num_retries, MAX_RETRIES=MAX_RETRIES
+                            status=e.response.status_code,
+                            pn=pn,
+                            num_retries=num_retries,
+                            MAX_RETRIES=MAX_RETRIES,
                         )
                     )
             else:
-                log("Failed to download {pn} after {num_retries} retries".format(pn=pn, num_retries=num_retries))
+                logging.error(
+                    "Failed to download {pn} after {num_retries} retries".format(pn=pn, num_retries=num_retries)
+                )
                 continue
 
         # Now upload to artifactory, if we have credentials
         if art_helper:
-            log("Uploading {pn} to artifactory".format(pn=pn))
+            logging.info("Uploading {pn} to artifactory".format(pn=pn))
+            progress("^")
             response = art_helper.upload_file(filepath=fn)
             response.raise_for_status()
     # for packages
+    progress("\n")
 # for buckets
 
-log("All done")
+logging.info("All done")

@@ -38,11 +38,12 @@ The only required parameter is the RedHat API offline token, which should normal
 
 | Parameter | Meaning | Default value | Examples |
 | --- | --- | --- | --- |
-| `-t` | Red Hat API token **(mandatory)** | `` | `-t 0011223344aabbcc` ||
+| `-t` | Red Hat API token **(mandatory)** |  | `-t 6DhjYIFYM587anxFXg1XA6jTpNwWwoMuB2gBnlLR0SYYeGj4cpV1OAPmKaUfEDoh8XHIHWJvZ2D57bHdh5i7JOF7qedtphGNLXzGtRDTwyJqTYj5MScmqRy3VapnsgD2yhCBoJ1l4pJdvZuqblEZksOERPNGs5MKeBAMRazxLmlJF4ySv3tVhAp538KJLYtA7Z3We2fF6KKazdfLoaXy2uz0ViHiVidf7HHBwhsnlrBRjIqX4XJVrqeAEGnJvRb5dAjvOQDHxR0m7D3EQBA6AQEHu8ZCYPyRUL2JbBMi7DaSXZ3OdfSnfTiFprwF4TMnwbMEK9fuO3lMAaoBHA4WSmeSPFhSLtQdcqLdKfgj9cFEBR88H5unfqu5vOTNkBnZ3rqVyQpUBPyMprGERjkStTDq9bKFhh1GteNkb3InRVkb43hVNC3XCvX2Xyzff7iPIFRR41j2ClifGdBuqXdBXghBioT032mu6rVCCFtbkAV9Kbi98jh05l9mTLGs7pTmiMcMDtRSmIiqbRD2T7ZqWZrlTenVpyOa1fW9E3O4bD8Y8r6q6QaPm8AVDrVAujHKMmCN1CNVqHIaRO74vz2aYkC4R6eZtlDmzygxH5U1G2Ca0nI3s2Q67SpEhBAw` |
 | `-o`, `--outdir` | Output directory (must exist) | `.` | `-o /tmp`, `-o headers` |
 | `-b`, `--redhat-bucket` | RedHat bucket(s) to walk (may be used multiple times) | `rhel-8-for-x86_64-baseos-rpms`, `rhel-8-for-x86_64-baseos-eus-rpms`, `hocp-4.7-for-rhel-8-x86_64-rpms` | `-b hocp-4.7-for-rhel-8-x86_64-rpms` |
-| `-a` | Artifactory server | (None) | `-a artifactory.mycompany.com` |
-| `-A` | Artifactory API key | (None) | `-A 998877aabbccdd` |
+| `-a` | Artifactory base url | (None) | `-a https://artifactory.mycompany.com/artifactory` |
+| `-A` | Artifactory API key | (None) | `-A  cmalzOJ7Vww8dKZv2Z7U9gifhjlrwQx6b44RPolzte00PEr9yVfjaGhclxGXXVFVre81S05Zs` |
+| -i | Interactive mode - output progress reports to `stderr` |  |  |
 | `-q` | Quiet mode - no output except critical errors | off | `-q` |
 | `-v` | Verbose | off | `-v` |
 
