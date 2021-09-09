@@ -58,14 +58,14 @@ def https_download_file(auth, url, ofname, accept="application/octet-stream", ex
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-t", "--redhat-token", help="RedHat token", required=True)
+parser.add_argument("-t", "--redhat-token", help="Red Hat token", required=True)
 parser.add_argument(
     "-b",
     "--redhat-bucket",
     dest="buckets",
     action="append",
     default=[],
-    help="Redhat bucket(s) to scrape",
+    help="Red Hat bucket(s) to scrape",
 )
 parser.add_argument("-a", "--artifactory-base-url", help="Artifactory base url")
 parser.add_argument("-A", "--artifactory-key", help="Artifactory API key")
@@ -90,7 +90,6 @@ else:
 logging.basicConfig(
     stream=sys.stdout,
     level=level,
-    # format="[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s",
     format="[%(asctime)s] %(levelname)s - %(message)s",
 )
 
@@ -107,11 +106,12 @@ if args.artifactory_base_url and args.artifactory_key:
         base_url=args.artifactory_base_url, bucket=ARTIFACTORY_BUCKET, apikey=args.artifactory_key
     )
     # This has a double purpose:
-    # 1) pre-fetch the list of artifacst so it's only done once
+    # 1) pre-fetch the list of artifacts so it's only done once
     # 2) validate Artifactory credentials so to avoid a later failure
     art_list = art_helper.list_artifacts()
 elif args.artifactory_base_url or args.artifactory_key:
     sys.exit("Only one of --artifactory-base-url and --artifactory-key provided, but not both. Bailing out.")
+
 packages = {}
 s = requests.Session()
 

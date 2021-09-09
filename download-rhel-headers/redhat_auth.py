@@ -3,14 +3,14 @@ import requests.auth
 import threading
 from requests.cookies import extract_cookies_to_jar
 
-## Redhat Token-based authentication
+## Red Hat Token-based authentication
 ## Inspired by HTTPDigestAuth (see https://github.com/psf/requests/blob/main/requests/auth.py)
 
 RHAPI_AUTH_URL = "https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token"
 
 
 class RedHatTokenAuth(requests.auth.AuthBase):
-    """Attaches Redhat token-based Authentication to the given Request object."""
+    """Attaches Red Hat token-based Authentication to the given Request object."""
 
     def __init__(self, offline_token):
         self.offline_token = offline_token
@@ -28,7 +28,7 @@ class RedHatTokenAuth(requests.auth.AuthBase):
 
     def refresh_access_token(self):
         s = requests.Session()
-        logging.info("Refreshing RedHat access token")
+        logging.info("Refreshing Red Hat access token")
         url = RHAPI_AUTH_URL
         data = {
             "grant_type": "refresh_token",
@@ -46,7 +46,7 @@ class RedHatTokenAuth(requests.auth.AuthBase):
 
         js = response.json()
         self._thread_local.access_token = js["access_token"]
-        logging.info("RedHat access token successfully refreshed")
+        logging.info("Red Hat access token successfully refreshed")
 
     def set_auth_header(self, r):
         r.headers["Authorization"] = "Bearer {}".format(self._thread_local.access_token)

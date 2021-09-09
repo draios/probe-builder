@@ -1,6 +1,7 @@
 import requests
 import os
 
+
 class ArtifactoryHelper:
     def __init__(self, base_url, bucket, apikey):
         self.base_url = base_url
@@ -8,19 +9,19 @@ class ArtifactoryHelper:
         self.apikey = apikey
 
     def list_artifacts(self):
+        s = requests.Session()
+
         url = "{base_url}/api/storage/{bucket}".format(base_url=self.base_url, bucket=self.bucket)
         headers = {
-            'accept': 'application/json',
-            'X-JFrog-Art-Api': self.apikey,
+            "accept": "application/json",
+            "X-JFrog-Art-Api": self.apikey,
         }
-
-        s = requests.Session()
         # see https://www.jfrog.com/confluence/display/RTF6X/Artifactory+REST+API#ArtifactoryRESTAPI-FileList
-        params = 'list'
+        params = "list"
 
         response = s.get(url=url, headers=headers, params=params)
         response.raise_for_status()
-        # expected output is like:
+        # expected output looks like:
         # {
         #   'uri': '{base_url}/api/storage/{bucket}',
         #   'created': '2021-09-07T09:32:39.948Z',
@@ -30,21 +31,21 @@ class ArtifactoryHelper:
         #    ]
         # }
         j = response.json()
-        #print(j)
-        return { file['uri'].lstrip("/") : file['sha2'] for file in j['files'] if not file['folder'] }
+        # print(j)
+        return {file["uri"].lstrip("/"): file["sha2"] for file in j["files"] if not file["folder"]}
 
     def upload_file(self, filepath):
         s = requests.Session()
         fn = os.path.basename(filepath)
-        url = "{base_url}/{bucket}/{fn}".format(base_url=self.base_url, bucket=self.bucket, fn=fn)
-        response = None
 
+        url = "{base_url}/{bucket}/{fn}".format(base_url=self.base_url, bucket=self.bucket, fn=fn)
         headers = {
-            'Content-Type': 'application/octet-stream',
-            'X-JFrog-Art-Api': self.apikey,
+            "Content-Type": "application/octet-stream",
+            "X-JFrog-Art-Api": self.apikey,
         }
+        response = None
         with open(filepath, "rb") as f:
-            data = f.read() # read entire file as bytes
+            data = f.read()  # read entire file as bytes
             response = s.put(url=url, headers=headers, data=data)
 
         return response
