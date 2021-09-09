@@ -17,6 +17,10 @@ class RedHatTokenAuth(requests.auth.AuthBase):
         # Keep state in per-thread local storage
         self._thread_local = threading.local()
 
+        # Pre-validate offline token
+        self.init_per_thread_state()
+        self.refresh_access_token()
+
     def init_per_thread_state(self):
         # Ensure state is initialized just once per-thread
         if not hasattr(self._thread_local, "init"):
