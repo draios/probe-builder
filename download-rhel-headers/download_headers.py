@@ -93,9 +93,18 @@ logging.basicConfig(
     format="[%(asctime)s] %(levelname)s - %(message)s",
 )
 
-# Check if the output directory exists
-if not os.path.isdir(args.outdir):
-    sys.exit("Output directory '{}' ({}) does not exist. Aborting.".format(args.outdir, os.path.abspath(args.outdir)))
+# Create the output directory unless it already exists
+try:
+    os.makedirs(args.outdir)
+except FileExistsError:
+    logging.debug("Already existing output directory {}".format(args.outdir))
+else:
+    logging.debug("Successfully created output directory {}".format(args.outdir))
+
+# Make sure the directory is writable
+if not os.access(args.outdir, os.W_OK):
+    logging.critical("Output directory {} is not writable".format(args.outdir))
+    sys.exit(2)
 
 redhat_auth = RedHatTokenAuth(args.redhat_token)
 
@@ -110,7 +119,8 @@ if args.artifactory_base_url and args.artifactory_key:
     # 2) validate Artifactory credentials so to avoid a later failure
     art_list = art_helper.list_artifacts()
 elif args.artifactory_base_url or args.artifactory_key:
-    sys.exit("Only one of --artifactory-base-url and --artifactory-key provided, but not both. Bailing out.")
+    logging.critical("Only one of --artifactory-base-url/-a and --artifactory-key/-A provided, but not both. Bailing out.")
+    sys.exit(2)
 
 packages = {}
 s = requests.Session()
@@ -132,9 +142,7 @@ for bucket in args.buckets:
         headers = {"accept": "application/json"}
         response = s.get(url, headers=headers, params=params, auth=redhat_auth)
         response.raise_for_status()
-        # print (response.body)
         j = response.json()
-        # print(j)
         # The RH API server sometimes faceplants for unknown reasons. Sleep, then retry
         if j.get("error"):
             retries += 1
@@ -145,13 +153,13 @@ for bucket in args.buckets:
                 continue
             else:
                 logging.critical(msg + "Aborting")
-                sys.exit(-2)
+                sys.exit(1)
 
         # Determine whether we need to keep going or if we're at the end of the package list
         pag = j["pagination"]
         if not pag:
-            logging.critical("Got mal-formed JSON response:" + str(j))
-            sys.exit(-2)
+            logging.critical("Got malformed JSON response:" + str(j))
+            sys.exit(1)
 
         if pag["count"] < pag["limit"]:
             done = True  # terminate

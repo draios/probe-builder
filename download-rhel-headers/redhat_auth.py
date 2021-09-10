@@ -5,6 +5,11 @@ from requests.cookies import extract_cookies_to_jar
 
 ## Red Hat Token-based authentication
 ## Inspired by HTTPDigestAuth (see https://github.com/psf/requests/blob/main/requests/auth.py)
+## This class can be instantiated with a RedHat long-lived offline token.
+## The resulting object, when passed as the auth argument to HTTP requests towards Red Hat API's, will:
+## - transparently obtain a short-lived access token (through Red Hat's SSO)
+## - automatically refresh such token when needed (i.e. after 15 minutes)
+## - pass it to the actual HTTP request as "Authentication: Bearer" HTTP headers
 
 RHAPI_AUTH_URL = "https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token"
 
@@ -62,7 +67,7 @@ class RedHatTokenAuth(requests.auth.AuthBase):
 
     def handle_401(self, r, **kwargs):
         """
-        Takes the given response and retries with bearer auth, if needed.
+        Take the given response and if the status code is 4xx, refresh the access token and retry with bearer authentication
 
         :rtype: requests.Response
         """
@@ -75,6 +80,15 @@ class RedHatTokenAuth(requests.auth.AuthBase):
 
         logging.info("Received '{} {}' from {}".format(r.status_code, r.reason, r.request.url))
 
+        # The logic for num_401_calls is:
+        # --> You get 401 once
+        #    --> access token absent or expired
+        #       --> get a new one and retry
+        # --> You get 401 twice
+        #    --> access token is invalid
+        #      --> reset counter and give up
+        #        --> have the original issuer deal with it
+        #
         if self._thread_local.num_401_calls < 2:
             self._thread_local.num_401_calls += 1
 
