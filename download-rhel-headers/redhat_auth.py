@@ -1,6 +1,5 @@
 import logging
 import requests.auth
-import threading
 from requests.cookies import extract_cookies_to_jar
 
 ## Red Hat Token-based authentication
@@ -19,21 +18,15 @@ class RedHatTokenAuth(requests.auth.AuthBase):
 
     def __init__(self, offline_token):
         self.offline_token = offline_token
-        # Keep state in per-thread local storage
-        self._thread_local = threading.local()
 
+        self.access_token = None
+        self.num_401_calls = None
+
+        # If you want to test the automatic refresh/recovery path without having to wait 15 minutes,
+        # Uncomment the following line and comment the one refreshing/pre-validating the access token
+        #self.access_token = "WRONG_BY_DEFINITION"
         # Pre-validate offline token
-        self.init_per_thread_state()
         self.refresh_access_token()
-
-    def init_per_thread_state(self):
-        # Ensure state is initialized just once per-thread
-        if not hasattr(self._thread_local, "init"):
-            self._thread_local.init = True
-            self._thread_local.access_token = None
-            # Uncomment the following line to test the recovery path at the first attempt
-            # self._thread_local.access_token = "WRONG_BY_DEFINITION"
-            self._thread_local.num_401_calls = None
 
     def refresh_access_token(self):
         s = requests.Session()
@@ -54,16 +47,16 @@ class RedHatTokenAuth(requests.auth.AuthBase):
             raise requests.exceptions.HTTPError(msg, response=response)
 
         js = response.json()
-        self._thread_local.access_token = js["access_token"]
+        self.access_token = js["access_token"]
         logging.info("Red Hat access token successfully refreshed")
 
     def set_auth_header(self, r):
-        r.headers["Authorization"] = "Bearer {}".format(self._thread_local.access_token)
+        r.headers["Authorization"] = "Bearer {}".format(self.access_token)
 
     def handle_redirect(self, r, **kwargs):
         """Reset num_401_calls counter on redirects."""
         if r.is_redirect:
-            self._thread_local.num_401_calls = 1
+            self.num_401_calls = 1
 
     def handle_401(self, r, **kwargs):
         """
@@ -75,7 +68,7 @@ class RedHatTokenAuth(requests.auth.AuthBase):
         # If response is not 4xx, do not auth
         # See https://github.com/psf/requests/issues/3772
         if not 400 <= r.status_code < 500:
-            self._thread_local.num_401_calls = 1
+            self.num_401_calls = 1
             return r
 
         logging.info("Received '{} {}' from {}".format(r.status_code, r.reason, r.request.url))
@@ -89,8 +82,8 @@ class RedHatTokenAuth(requests.auth.AuthBase):
         #      --> reset counter and give up
         #        --> have the original issuer deal with it
         #
-        if self._thread_local.num_401_calls < 2:
-            self._thread_local.num_401_calls += 1
+        if self.num_401_calls < 2:
+            self.num_401_calls += 1
 
             self.refresh_access_token()
 
@@ -108,22 +101,20 @@ class RedHatTokenAuth(requests.auth.AuthBase):
             _r.request = prep
             return _r
 
-        self._thread_local.num_401_calls = 1
+        self.num_401_calls = 1
         return r
 
     def __call__(self, r):
-        # Initialize per-thread state, if needed
-        self.init_per_thread_state()
         # If we have no access token available, just obtain one
-        if not self._thread_local.access_token:
+        if not self.access_token:
             self.refresh_access_token()
 
-        if self._thread_local.access_token:
+        if self.access_token:
             self.set_auth_header(r)
 
         r.register_hook("response", self.handle_401)
         r.register_hook("response", self.handle_redirect)
-        self._thread_local.num_401_calls = 1
+        self.num_401_calls = 1
         return r
 
     def __eq__(self, other):
