@@ -832,7 +832,7 @@ class Oracle8Mirror(OracleMirror):
 
 class EmptyMirror(object):
     @staticmethod
-    def get_package_urls():
+    def get_package_urls(version=''):
         return []
 
 
@@ -867,7 +867,7 @@ def main():
     try:
         distro_cls = DISTROS[sys.argv[1]]
     except IndexError:
-        print('Usage: kernel-crawler.py DISTRO', file=sys.stderr)
+        print('Usage: kernel-crawler.py DISTRO [VERSION]', file=sys.stderr)
         usage()
         sys.exit(1)
     except KeyError:
@@ -875,8 +875,13 @@ def main():
         usage()
         sys.exit(1)
 
+    try:
+        version = sys.argv[2]
+    except IndexError:
+        version = ''
+
     distro = distro_cls()
-    for url in distro.get_package_urls():
+    for url in distro.get_package_urls(version):
         print(url)
 
 
