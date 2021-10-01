@@ -759,9 +759,18 @@ class AmazonLinux2Mirror(MultiMirror):
 class PhotonOsRepository(RpmRepository):
     @classmethod
     def kernel_package_query(cls):
-        # we exclude `esx` kernels because they don't support CONFIG_TRACEPOINTS
-        # see https://github.com/vmware/photon/issues/1223
-        return '''((name = 'linux' OR name LIKE 'linux-%devel%') AND name NOT LIKE '%esx%')'''
+        # We exclude `esx` kernels because they don't support CONFIG_TRACEPOINTS,
+        # see https://github.com/vmware/photon/issues/1223.
+        # We also exclude all the other variants for now (plus Linux-PAM-devel).
+        return '''(
+            (name = 'linux' OR name LIKE 'linux-%devel%')
+            AND name NOT LIKE '%-PAM-%'
+            AND name NOT LIKE '%-esx-%'
+            AND name NOT LIKE '%-rt-%'
+            AND name NOT LIKE '%-secure-%'
+            AND name NOT LIKE '%-aws-%'
+        )
+        '''
 
 
 class PhotonOsMirror(MultiMirror):
