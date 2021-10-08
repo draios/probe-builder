@@ -592,7 +592,7 @@ function rhel_build {
 	for RPM in "$@"
 	do
 		RPM_FILE=$(basename $RPM)
-		KERNEL_RELEASE=$(echo $RPM_FILE | gawk 'match($0, /[^kernel\-(uek\-)?(core\-|devel\-)?].*[^(\.rpm)]/){ print substr($0, RSTART, RLENGTH) }')
+		KERNEL_RELEASE=$(echo $RPM_FILE | gawk 'match($0, /[^kernel\-(uek\-)?(core\-|modules\-|devel\-)?].*[^(\.rpm)]/){ print substr($0, RSTART, RLENGTH) }')
 
 		TARGET=build/$DISTRO/$KERNEL_RELEASE
 		MARKER=$TARGET/.$RPM_FILE
@@ -612,7 +612,7 @@ function rhel_build {
 	for RPM in "$@"
 	do
 		RPM_FILE=$(basename $RPM)
-		KERNEL_RELEASE=$(echo $RPM_FILE | gawk 'match($0, /[^kernel\-(uek\-)?(core\-|devel\-)?].*[^(\.rpm)]/){ print substr($0, RSTART, RLENGTH) }')
+		KERNEL_RELEASE=$(echo $RPM_FILE | gawk 'match($0, /[^kernel\-(uek\-)?(core\-|modules\-|devel\-)?].*[^(\.rpm)]/){ print substr($0, RSTART, RLENGTH) }')
 		TARGET=build/$DISTRO/$KERNEL_RELEASE
 
 		if [ -f $TARGET/boot/config-$KERNEL_RELEASE ]; then
