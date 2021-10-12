@@ -81,12 +81,14 @@ socket.getaddrinfo = getaddrinfo_ipv4only
 
 try:
     # noinspection PyCompatibility
-    from urllib2 import urlopen, unquote
+    from urllib2 import urlopen, unquote, HTTPError
 except ImportError:
     # noinspection PyCompatibility
     from urllib.request import urlopen
     # noinspection PyCompatibility
     from urllib.parse import unquote
+    # noinspection PyCompatibility
+    from urllib.error import HTTPError
 
 try:
     # noinspection PyCompatibility
@@ -219,6 +221,9 @@ class DebRepository(Repository):
             self.repo_base + self.repo_name + '/Packages.xz',
         ])
 
+    def __lt__(self, rhs):
+        return (self.repo_base, self.repo_name) < (rhs.repo_base, rhs.repo_name)
+
     # parse the Debian repo database
     # return a map of package_name => { version, dependencies, filename }
     @classmethod
@@ -229,6 +234,7 @@ class DebRepository(Repository):
         current_package = {}
         packages = {}
         for line in stream:
+            line = line.decode('utf-8')
             line = line.rstrip()
             if line == '':
                 name = current_package['Package']
@@ -409,7 +415,7 @@ class DebRepository(Repository):
                 self.repo_base + self.repo_name + '/Packages.gz',
                 self.repo_base + self.repo_name + '/Packages.xz',
             ])
-        except:
+        except HTTPError:
             return {}
 
         repo_packages = repo_packages.splitlines(True)
@@ -431,13 +437,16 @@ class DebRepository(Repository):
             if m:
                 pv = '{}/{}'.format(m.group(1), m.group(2))
             deps.setdefault(pv, set()).update(cls.get_package_deps(packages, pkg))
+        no_headers = set()
         for pkg, dep_list in deps.items():
             have_headers = False
             for dep in dep_list:
                 if 'linux-headers' in dep:
                     have_headers = True
             if not have_headers:
-                del deps[pkg]
+                no_headers.add(pkg)
+        for pkg in no_headers:
+            del deps[pkg]
         return deps
 
     def get_package_tree(self, version=''):
@@ -474,6 +483,7 @@ class DebMirror(Mirror):
         all_comps = set()
         release = get_url(self.base_url + dist + 'Release')
         for line in release.splitlines(False):
+            line = line.decode('utf-8')
             if line.startswith('Components: '):
                 for comp in line.split(None)[1:]:
                     if comp in ('main', 'updates', 'updates/main'):
@@ -504,11 +514,11 @@ class DebMirror(Mirror):
             # an updates/ subdirectory from the top level
             try:
                 repos.update(self.scan_repo('dists/{}'.format(dist)))
-            except:
+            except HTTPError:
                 pass
             try:
                 repos.update(self.scan_repo('dists/{}updates/'.format(dist)))
-            except:
+            except HTTPError:
                 pass
 
         return sorted(repos.values())
