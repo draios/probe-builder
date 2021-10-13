@@ -636,6 +636,8 @@ class RpmRepository(Repository):
                         FROM provides
                         INNER JOIN requires USING (name, flags, epoch, version, "release")
                         INNER JOIN transitive_deps ON requires.pkgkey = transitive_deps.pkgkey
+                        INNER JOIN packages USING (pkgkey)
+                        WHERE packages.name <> 'kernel-modules'
                 ) SELECT transitive_deps.version, location_href FROM packages INNER JOIN transitive_deps using(pkgkey);
             '''.format(base_query)
 
@@ -655,7 +657,8 @@ class RpmRepository(Repository):
                     placeholders = ', '.join(['?'] * len(pkgkeys))
                     query = '''SELECT provides.pkgkey FROM provides
                         INNER JOIN requires USING (name, flags, epoch, version, "release")
-                        WHERE requires.pkgkey IN ({}) AND provides.pkgkey NOT IN ({})'''.format(placeholders, placeholders)
+                        INNER JOIN packages USING (pkgkey)
+                        WHERE requires.pkgkey IN ({}) AND provides.pkgkey NOT IN ({}) AND packages.name <> 'kernel-modules' '''.format(placeholders, placeholders)
                     cursor.execute(query, list(pkgkeys) + list(pkgkeys))
                     new_ids = {r[0] for r in cursor.fetchall()}
                     if not new_ids:
