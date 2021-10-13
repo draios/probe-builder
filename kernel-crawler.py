@@ -377,11 +377,17 @@ class DebRepository(Repository):
                 continue
             if '-kvm' in p:
                 continue
+            if '-ibm' in p:
+                continue
+            if 'grsec' in p:
+                continue
             # skip backported kernels (again, to match historic behavior
             # and to avoid an explosion in the number of built probes)
             if '-lts-' in deps[p]['URL']:
                 continue
             if '-hwe' in deps[p]['URL']:
+                continue
+            if '.bpo.' in p:
                 continue
             release = p.replace('linux-headers-', '')
             candidates = ['linux-modules-{}', 'linux-image-{}', 'linux-image-{}-unsigned']
