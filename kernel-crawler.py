@@ -632,51 +632,51 @@ class RpmRepository(Repository):
         cursor = db.cursor()
         base_query, args = cls.build_base_query(version)
 
-        if sqlite3.sqlite_version_info >= (3, 8, 0):
-            # we can do a recursive SQL query to find all packages
-            # and their (transitive) dependencies in one shot. Behold.
-            query = '''WITH RECURSIVE transitive_deps(version, pkgkey) AS (
-                    {}
-                    UNION
-                    SELECT transitive_deps.version, provides.pkgkey
-                        FROM provides
-                        INNER JOIN requires USING (name, flags, epoch, version, "release")
-                        INNER JOIN transitive_deps ON requires.pkgkey = transitive_deps.pkgkey
-                        INNER JOIN packages USING (pkgkey)
-                        WHERE packages.name <> 'kernel-modules'
-                ) SELECT transitive_deps.version, location_href FROM packages INNER JOIN transitive_deps using(pkgkey);
-            '''.format(base_query)
+        # if sqlite3.sqlite_version_info >= (3, 8, 0):
+        #     # we can do a recursive SQL query to find all packages
+        #     # and their (transitive) dependencies in one shot. Behold.
+        #     query = '''WITH RECURSIVE transitive_deps(version, pkgkey) AS (
+        #             {}
+        #             UNION
+        #             SELECT transitive_deps.version, provides.pkgkey
+        #                 FROM provides
+        #                 INNER JOIN requires USING (name, flags, epoch, version, "release")
+        #                 INNER JOIN transitive_deps ON requires.pkgkey = transitive_deps.pkgkey
+        #                 INNER JOIN packages USING (pkgkey)
+        #                 WHERE packages.name <> 'kernel-modules'
+        #         ) SELECT transitive_deps.version, location_href FROM packages INNER JOIN transitive_deps using(pkgkey);
+        #     '''.format(base_query)
+        # 
+        #     cursor.execute(query, args)
+        #     return cursor.fetchall()
+        # else:
+        #     # we need to do the recursion ourselves
+        cursor.execute(base_query, args)
+        packages = {}
+        for ver, pkgid in cursor.fetchall():
+            packages.setdefault(ver, set()).add(pkgid)
 
-            cursor.execute(query, args)
-            return cursor.fetchall()
-        else:
-            # we need to do the recursion ourselves
-            cursor.execute(base_query, args)
-            packages = {}
-            for ver, pkgid in cursor.fetchall():
-                packages.setdefault(ver, set()).add(pkgid)
+        repo_db = []
 
-            repo_db = []
-
-            for ver, pkgkeys in packages.items():
-                while True:
-                    placeholders = ', '.join(['?'] * len(pkgkeys))
-                    query = '''SELECT provides.pkgkey FROM provides
-                        INNER JOIN requires USING (name, flags, epoch, version, "release")
-                        INNER JOIN packages USING (pkgkey)
-                        WHERE requires.pkgkey IN ({}) AND provides.pkgkey NOT IN ({}) AND packages.name <> 'kernel-modules' '''.format(placeholders, placeholders)
-                    cursor.execute(query, list(pkgkeys) + list(pkgkeys))
-                    new_ids = {r[0] for r in cursor.fetchall()}
-                    if not new_ids:
-                        break
-                    pkgkeys.update(new_ids)
-                
+        for ver, pkgkeys in packages.items():
+            while True:
                 placeholders = ', '.join(['?'] * len(pkgkeys))
-                query = '''SELECT location_href FROM packages WHERE pkgkey IN({})'''.format(placeholders)
-                cursor.execute(query, list(pkgkeys))
-                for row in cursor.fetchall():
-                    repo_db.append((ver, row[0]))
-            return repo_db
+                query = '''SELECT provides.pkgkey FROM provides
+                    INNER JOIN requires USING (name, flags, epoch, version, "release")
+                    INNER JOIN packages USING (pkgkey)
+                    WHERE requires.pkgkey IN ({}) AND provides.pkgkey NOT IN ({}) AND packages.name <> 'kernel-modules' '''.format(placeholders, placeholders)
+                cursor.execute(query, list(pkgkeys) + list(pkgkeys))
+                new_ids = {r[0] for r in cursor.fetchall()}
+                if not new_ids:
+                    break
+                pkgkeys.update(new_ids)
+            
+            placeholders = ', '.join(['?'] * len(pkgkeys))
+            query = '''SELECT location_href FROM packages WHERE pkgkey IN({})'''.format(placeholders)
+            cursor.execute(query, list(pkgkeys))
+            for row in cursor.fetchall():
+                repo_db.append((ver, row[0]))
+        return repo_db
 
     def get_repodb_url(self):
         repomd = get_url(self.base_url + 'repodata/repomd.xml')
