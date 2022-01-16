@@ -21,6 +21,9 @@
 # for it in a bunch of ways. Convenient when running sysdig inside
 # a container or in other weird environments.
 #
+#
+# --- WORKFLOW ---
+#
 # By default, the script uses the following approaches to build or fetch
 # or find the sysdig-probe, in the following order:
 # 1) In the kernel module case, use modprobe, which looks for the kernel
@@ -30,6 +33,13 @@
 # 3) Fetch the appropriate sysdig-probe (kernel module or eBPF) for the
 #    currently running kernel, from download.sysdig.com
 #
+# Workflow variations:
+# A) If the environment variable SYSDIG_FORCE_DOWNLOAD_KERNEL_PROBE is defined,
+#    as the first and ONLY step, the script tries to fetch the appropriate sysdig-probe (kernel probe only)
+#    for the currently running kernel, from download.sysdig.com.
+#    The script won't try neither to build, nor find locally, an appropriate kernel module.
+#
+# --- NAMING CONVENTIONS ---
 #
 # By default, the following naming conventions are used.
 # A) Probe filename
@@ -48,7 +58,7 @@
 # Where:
 #   DOWNLOAD_URL_HOST = "download.sysdig.com" by default
 #   DOWNLOAD_REPOSITORY = "stable" by defualt
-#   
+#
 #
 # The following environment variables may be used to override defaults for different
 # aspects of the object names:
@@ -61,19 +71,19 @@
 # - Also particularly useful when the host doesn't have sufficient files (kernel headers,
 #   kernel config file) available, because it avoids the necessity of finding and
 #   calculating the checksum of the kernel config file on the local system.
-#   
+#
 # 2) SYSDIG_PROBE_URL
 # - Finer-grain override
 # - Allows the user to override only the DOWNLOAD_URL_HOST value from item B above,
 #   to specify a different host + optional port number (e.g. "probe-host.mydomain.com:80"
 #   vs. the default "download.sysdig.com"),
-# - While retaining/mimicing the standard Sysdig directory structure and filename format 
-# 
+# - While retaining/mimicing the standard Sysdig directory structure and filename format
+#
 # 3) SYSDIG_REPOSITORY
 # - Finer-grain override
 # - Allows the user (or build script) to override only the DOWNLOAD_REPOSITORY value
 #   from item B above, to specify a top-level directory (e.g. "dev" instead of "stable")
-# - While retaining/mimicing the standard Sysdig directory structure and filename format 
+# - While retaining/mimicing the standard Sysdig directory structure and filename format
 
 #
 # Returns 1 if $cos_ver > $base_ver, 0 otherwise
@@ -124,24 +134,24 @@ cos_version_greater()
 
 get_kernel_config_hash() {
 	if [ -f /proc/config.gz ]; then
-		echo "Found kernel config at /proc/config.gz"
+		echo "  Found kernel config at /proc/config.gz"
 		KERNEL_CONFIG_PATH=/proc/config.gz
 	elif [ -f "/boot/config-${KERNEL_RELEASE}" ]; then
-		echo "Found kernel config at /boot/config-${KERNEL_RELEASE}"
+		echo "  Found kernel config at /boot/config-${KERNEL_RELEASE}"
 		KERNEL_CONFIG_PATH=/boot/config-${KERNEL_RELEASE}
 	elif [ ! -z "${SYSDIG_HOST_ROOT}" ] && [ -f "${SYSDIG_HOST_ROOT}/boot/config-${KERNEL_RELEASE}" ]; then
-		echo "Found kernel config at ${SYSDIG_HOST_ROOT}/boot/config-${KERNEL_RELEASE}"
+		echo "  Found kernel config at ${SYSDIG_HOST_ROOT}/boot/config-${KERNEL_RELEASE}"
 		KERNEL_CONFIG_PATH="${SYSDIG_HOST_ROOT}/boot/config-${KERNEL_RELEASE}"
 	elif [ -f "/usr/lib/ostree-boot/config-${KERNEL_RELEASE}" ]; then
-		echo "Found kernel config at /usr/lib/ostree-boot/config-${KERNEL_RELEASE}"
+		echo "  Found kernel config at /usr/lib/ostree-boot/config-${KERNEL_RELEASE}"
 		KERNEL_CONFIG_PATH="/usr/lib/ostree-boot/config-${KERNEL_RELEASE}"
 	elif [ ! -z "${SYSDIG_HOST_ROOT}" ] && [ -f "${SYSDIG_HOST_ROOT}/usr/lib/ostree-boot/config-${KERNEL_RELEASE}" ]; then
-		echo "Found kernel config at ${SYSDIG_HOST_ROOT}/usr/lib/ostree-boot/config-${KERNEL_RELEASE}"
+		echo "  Found kernel config at ${SYSDIG_HOST_ROOT}/usr/lib/ostree-boot/config-${KERNEL_RELEASE}"
 		KERNEL_CONFIG_PATH="${SYSDIG_HOST_ROOT}/usr/lib/ostree-boot/config-${KERNEL_RELEASE}"
 	elif [ -f /lib/modules/${KERNEL_RELEASE}/config ]; then
 		# this code works both for native host and agent container assuming that
 		# Dockerfile sets up the desired symlink /lib/modules -> $SYSDIG_HOST_ROOT/lib/modules
-		echo "Found kernel config at /lib/modules/${KERNEL_RELEASE}/config"
+		echo "  Found kernel config at /lib/modules/${KERNEL_RELEASE}/config"
 		KERNEL_CONFIG_PATH="/lib/modules/${KERNEL_RELEASE}/config"
 	fi
 
@@ -194,42 +204,7 @@ load_kernel_probe() {
 		exit 0
 	fi
 
-	# skip dkms on UEK hosts because it will always fail
-	if [[ $(uname -r) == *uek* ]]; then
-		echo "* Skipping dkms install for UEK host"
-	else
-		echo "* Running dkms install for ${PACKAGE_NAME}"
-		if dkms install -m "${PACKAGE_NAME}" -v "${SYSDIG_VERSION}" -k "${KERNEL_RELEASE}"; then
-			echo "* Trying to load a dkms ${PROBE_NAME}, if present"
-
-			if insmod "/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/${KERNEL_RELEASE}/${ARCH}/module/${PROBE_NAME}.ko" > /dev/null 2>&1; then
-				echo "${PROBE_NAME} found and loaded in dkms"
-				exit 0
-			elif insmod "/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/${KERNEL_RELEASE}/${ARCH}/module/${PROBE_NAME}.ko.xz" > /dev/null 2>&1; then
-				echo "${PROBE_NAME} found and loaded in dkms (xz)"
-				exit 0
-			else
-				echo "* Unable to insmod"
-			fi
-		else
-			DKMS_LOG="/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/build/make.log"
-			if [ -f "${DKMS_LOG}" ]; then
-				echo "* Running dkms build failed, dumping ${DKMS_LOG}"
-				cat "${DKMS_LOG}"
-			else
-				echo "* Running dkms build failed, couldn't find ${DKMS_LOG}"
-			fi
-		fi
-	fi
-
-	echo "* Trying to load a system ${PROBE_NAME}, if present"
-
-	if modprobe "${PROBE_NAME}" > /dev/null 2>&1; then
-		echo "${PROBE_NAME} found and loaded with modprobe"
-		exit 0
-	fi
-
-	echo "* Trying to find precompiled ${PROBE_NAME} for ${KERNEL_RELEASE}"
+	echo "* Evaluating naming convention"
 
 	local SYSDIG_PROBE_FILENAME
 	local URL
@@ -243,10 +218,49 @@ load_kernel_probe() {
 		URL=$(echo "${SYSDIG_PROBE_URL}/${SYSDIG_REPOSITORY}/sysdig-probe-binaries/${SYSDIG_PROBE_FILENAME}" | sed s/+/%2B/g)
 	fi
 
-	if [ -f "${HOME}/.sysdig/${SYSDIG_PROBE_FILENAME}" ]; then
-		echo "Found precompiled module at ~/.sysdig/${SYSDIG_PROBE_FILENAME}, loading module"
-		insmod "${HOME}/.sysdig/${SYSDIG_PROBE_FILENAME}"
-		exit $?
+	if [ ! -v SYSDIG_FORCE_DOWNLOAD_KERNEL_PROBE ]; then
+		# skip dkms on UEK hosts because it will always fail
+		if [[ $(uname -r) == *uek* ]]; then
+			echo "* Skipping dkms install for UEK host"
+		else
+			echo "* Running dkms install for ${PACKAGE_NAME}"
+			if dkms install -m "${PACKAGE_NAME}" -v "${SYSDIG_VERSION}" -k "${KERNEL_RELEASE}"; then
+				echo "* Trying to load a dkms ${PROBE_NAME}, if present"
+
+				if insmod "/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/${KERNEL_RELEASE}/${ARCH}/module/${PROBE_NAME}.ko" > /dev/null 2>&1; then
+					echo "${PROBE_NAME} found and loaded in dkms"
+					exit 0
+				elif insmod "/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/${KERNEL_RELEASE}/${ARCH}/module/${PROBE_NAME}.ko.xz" > /dev/null 2>&1; then
+					echo "${PROBE_NAME} found and loaded in dkms (xz)"
+					exit 0
+				else
+					echo "* Unable to insmod"
+				fi
+			else
+				DKMS_LOG="/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/build/make.log"
+				if [ -f "${DKMS_LOG}" ]; then
+					echo "* Running dkms build failed, dumping ${DKMS_LOG}"
+					cat "${DKMS_LOG}"
+				else
+					echo "* Running dkms build failed, couldn't find ${DKMS_LOG}"
+				fi
+			fi
+		fi
+
+		echo "* Trying to load a system ${PROBE_NAME}, if present"
+
+		if modprobe "${PROBE_NAME}" > /dev/null 2>&1; then
+			echo "${PROBE_NAME} found and loaded with modprobe"
+			exit 0
+		fi
+
+		echo "* Trying to find precompiled ${PROBE_NAME} for ${KERNEL_RELEASE}"
+
+		if [ -f "${HOME}/.sysdig/${SYSDIG_PROBE_FILENAME}" ]; then
+			echo "Found precompiled module at ~/.sysdig/${SYSDIG_PROBE_FILENAME}, loading module"
+			insmod "${HOME}/.sysdig/${SYSDIG_PROBE_FILENAME}"
+			exit $?
+		fi
 	fi
 
 	echo "* Trying to download precompiled module from ${URL}"
