@@ -320,15 +320,15 @@ load_bpf_probe() {
 
 	if [ ! -f "${HOME}/.sysdig/${BPF_PROBE_FILENAME}" ]; then
 
-	        local BPF_KERNEL_SOURCES_URL=""
+		local BPF_KERNEL_SOURCES_URL=""
 		local STRIP_COMPONENTS=1
-		
-	        customize_kernel_build() {
-		    if [ -n "${KERNEL_EXTRA_VERSION}" ]; then
-			sed -i "s/LOCALVERSION=\"\"/LOCALVERSION=\"${KERNEL_EXTRA_VERSION}\"/" .config
-		    fi
-		    make olddefconfig > /dev/null
-		    make modules_prepare > /dev/null
+
+		customize_kernel_build() {
+			if [ -n "${KERNEL_EXTRA_VERSION}" ]; then
+				sed -i "s/LOCALVERSION=\"\"/LOCALVERSION=\"${KERNEL_EXTRA_VERSION}\"/" .config
+			fi
+			make olddefconfig > /dev/null
+			make modules_prepare > /dev/null
 		}
 
 		if [ -n "${COS}" ]; then
@@ -339,27 +339,27 @@ load_bpf_probe() {
 			STRIP_COMPONENTS=0
 
 			customize_kernel_build() {
-			    pushd usr/src/* > /dev/null
+				pushd usr/src/* > /dev/null
 
-			    # Note: this overrides the KERNELDIR set while untarring the tarball
-			    export KERNELDIR=`pwd`
+				# Note: this overrides the KERNELDIR set while untarring the tarball
+				export KERNELDIR=`pwd`
 
-			    sed -i '/^#define randomized_struct_fields_start	struct {$/d' include/linux/compiler-clang.h
-			    sed -i '/^#define randomized_struct_fields_end	};$/d' include/linux/compiler-clang.h
+				sed -i '/^#define randomized_struct_fields_start	struct {$/d' include/linux/compiler-clang.h
+				sed -i '/^#define randomized_struct_fields_end	};$/d' include/linux/compiler-clang.h
 
-			    popd > /dev/null
+				popd > /dev/null
 
-			    # Might need to configure our own sources depending on COS version
-			    cos_ver=${BUILD_ID}
-			    base_ver=11553.0.0
+				# Might need to configure our own sources depending on COS version
+				cos_ver=${BUILD_ID}
+				base_ver=11553.0.0
 
-			    cos_version_greater
-			    greater_ret=$?
+				cos_version_greater
+				greater_ret=$?
 
-			    if [[ greater_ret -eq 1 ]]; then
-				export KBUILD_EXTRA_CPPFLAGS=-DCOS_73_WORKAROUND
-			    fi
-                        }
+				if [[ greater_ret -eq 1 ]]; then
+					export KBUILD_EXTRA_CPPFLAGS=-DCOS_73_WORKAROUND
+				fi
+			}
 		fi
 
 		if [ -n "${MINIKUBE}" ]; then
@@ -377,7 +377,7 @@ load_bpf_probe() {
 		fi
 
 		if [ -n "${SYSDIG_BPF_USE_LOCAL_KERNEL_SOURCES}" ]; then
-		        local -r kernel_version_major=$(uname -r | cut -d. -f1)
+			local -r kernel_version_major=$(uname -r | cut -d. -f1)
 			local -r kernel_version=$(uname -r | cut -d- -f1)
 			KERNEL_EXTRA_VERSION="-$(uname -r | cut -d- -f2)"
 
@@ -404,9 +404,9 @@ load_bpf_probe() {
 			export KERNELDIR=`pwd`
 
 			if [[ "${KERNEL_CONFIG_PATH}" == *.gz ]]; then
-			    zcat "${KERNEL_CONFIG_PATH}" > .config
+				zcat "${KERNEL_CONFIG_PATH}" > .config
 			else
-			    cat "${KERNEL_CONFIG_PATH}" > .config
+				cat "${KERNEL_CONFIG_PATH}" > .config
 			fi
 
 			echo "* Configuring kernel"
@@ -477,16 +477,16 @@ if [ -z "${SYSDIG_REPOSITORY}" ]; then
 fi
 
 if [ "${SCRIPT_NAME}" = "sysdig-probe-loader" ]; then
-        if [ -z "$SYSDIG_VERSION" ]; then
-	    SYSDIG_VERSION=$(sysdig --version | cut -d' ' -f3)
+	if [ -z "$SYSDIG_VERSION" ]; then
+		SYSDIG_VERSION=$(sysdig --version | cut -d' ' -f3)
 	fi
 	PROBE_NAME="sysdig-probe"
 	BPF_PROBE_NAME="sysdig-probe-bpf"
 	PACKAGE_NAME="sysdig"
 elif [ "${SCRIPT_NAME}" = "sysdigcloud-probe-loader" ]; then
 	EXEPATH=$(dirname "$(readlink -f "${0}")")
-        if [ -z "$SYSDIG_VERSION" ]; then
-	    SYSDIG_VERSION=$("${EXEPATH}"/dragent --version)
+	if [ -z "$SYSDIG_VERSION" ]; then
+		SYSDIG_VERSION=$("${EXEPATH}"/dragent --version)
 	fi
 	PROBE_NAME="sysdigcloud-probe"
 	BPF_PROBE_NAME="sysdigcloud-probe-bpf"
