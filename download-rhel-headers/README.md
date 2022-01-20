@@ -21,7 +21,7 @@ pip3 install requests
 ### Red Hat API key
 
 Your Red Hat subscriber account will need access to the Red Hat software respository located here:
-https://access.redhat.com/downloads/content/package-browser. You will also need to have generated an API key for your account. The Red Hat subscriber API uses a two-phase key system: one key (called the **offline token**) which you store permanently on your computer, and one key called an **access token** which gives access to the API for a short amount of time and then expires (15 minutes as of today). You need an offline token to be passed over to the script as a command line argument.
+https://access.redhat.com/downloads/content/package-browser. You will also need to have generated an API key (or token) for your account. You can generate one by opening https://access.redhat.com/management/api and clicking on big blue "Generate Token" button. The Red Hat subscriber API uses a two-phase key system: one key (called the **offline token**) which you store permanently on your computer, and one key called an **access token** which gives access to the API for a short amount of time and then expires (15 minutes as of today). You need an offline token to be passed over to the script as a command line argument.
 Please be aware that the **offline token** will **expire in 90 days** if left unused so you should run the script every once in a while to keep it alive.
 
 ### Artifactory API key
