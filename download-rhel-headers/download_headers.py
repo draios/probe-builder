@@ -15,9 +15,11 @@ DEFAULT_RPM_BUCKETS = [
     "rhel-8-for-x86_64-baseos-rpms",
     "rhel-8-for-x86_64-baseos-eus-rpms",
     "rhocp-4.7-for-rhel-8-x86_64-rpms",
+    "rhel-9-for-x86_64-appstream-beta-rpms",
+    "rhel-9-for-x86_64-baseos-beta-rpms",
 ]
 
-PKG_REGEXP = "kernel-(core|devel)"
+PKG_REGEXP = "^kernel-(core|devel)$"
 
 ARTIFACTORY_BUCKET = "redhat-sources"
 
