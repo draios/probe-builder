@@ -12,7 +12,8 @@ from probe_builder.py23 import make_string
 def get_al_repo(repo_root, repo_release):
     repo_pointer = repo_root + repo_release + "/mirror.list"
     resp = get_url(repo_pointer)
-    return make_string(resp.splitlines()[0]).replace('$basearch', 'x86_64') + '/'
+    # Some distributions have a trailing slash (like AmazonLinux2022), some don't.
+    return make_string(resp.splitlines()[0]).replace('$basearch', 'x86_64').rstrip('/') + '/'
 
 
 class AmazonLinux1Mirror(repo.Distro):
@@ -56,4 +57,26 @@ class AmazonLinux2Mirror(repo.Distro):
                 self.AL2_REPOS, label='Checking repositories', file=sys.stderr, item_show_func=repo.to_s) as repos:
             for r in repos:
                 repo_urls.add(get_al_repo("http://amazonlinux.us-east-1.amazonaws.com/2/", r + '/x86_64'))
+        return [rpm.RpmRepository(url) for url in sorted(repo_urls)]
+
+class AmazonLinux2022Mirror(repo.Distro):
+
+    # This was obtained by running
+    # docker run -it --rm amazonlinux:2022 python3 -c 'import dnf, json; db = dnf.dnf.Base(); print(json.dumps(db.conf.substitutions, indent=2))'
+    AL2022_REPOS = [
+        '2022.0.20220202',
+    ]
+
+    def __init__(self):
+        super(AmazonLinux2022Mirror, self).__init__([])
+
+    def list_repos(self):
+        repo_urls = set()
+        with click.progressbar(
+                self.AL2022_REPOS, label='Checking repositories', file=sys.stderr, item_show_func=repo.to_s) as repos:
+            # This was obtained by running:
+            # cat /etc/yum.repos.d/amazonlinux.repo
+            # https://al2022-repos-$awsregion-9761ab97.s3.dualstack.$awsregion.$awsdomain/core/mirrors/$releasever/$basearch/mirror.list
+            for r in repos:
+                repo_urls.add(get_al_repo("https://al2022-repos-us-east-1-9761ab97.s3.dualstack.us-east-1.amazonaws.com/core/mirrors/", r + '/x86_64'))
         return [rpm.RpmRepository(url) for url in sorted(repo_urls)]
