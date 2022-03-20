@@ -69,8 +69,8 @@ class FlatcarBuilder(DistroBuilder):
         else:
             logger.info("Build for {} probe {}-{} ({}) successful".format(label, coreos_kernel_release, config_hash, release))
 
-    def crawl(self, workspace, distro, crawler_distro, download_config=None):
-        kernels = crawl_kernels(crawler_distro)
+    def crawl(self, workspace, distro, crawler_distro, download_config=None, distro_filter='', kernel_filter=''):
+        kernels = crawl_kernels(crawler_distro, distro_filter, kernel_filter)
         try:
             os.makedirs(workspace.subdir(distro.distro))
         except OSError as exc:

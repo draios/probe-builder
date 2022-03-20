@@ -60,8 +60,8 @@ class CrawlDistro(object):
         self.distro_builder = self.distro_obj.builder()
         self.crawler_distro = crawler_distro
 
-    def get_kernels(self, workspace, _packages, download_config, filter):
-        return self.distro_builder.crawl(workspace, self.distro_obj, self.crawler_distro, download_config, filter)
+    def get_kernels(self, workspace, _packages, download_config, distro_filter, kernel_filter):
+        return self.distro_builder.crawl(workspace, self.distro_obj, self.crawler_distro, download_config, distro_filter, kernel_filter)
 
 class LocalDistro(object):
 
@@ -69,7 +69,7 @@ class LocalDistro(object):
         self.distro_obj = Distro(distro, builder_distro)
         self.distro_builder = self.distro_obj.builder()
 
-    def get_kernels(self, _workspace, packages, _download_config, filter):
+    def get_kernels(self, _workspace, packages, _download_config, _distro_filter, _kernel_filter):
         return self.distro_builder.batch_packages(packages)
 
 
@@ -107,7 +107,8 @@ def cli(debug):
 @click.option('-d', '--download-concurrency', type=click.INT, default=1)
 @click.option('-j', '--jobs', type=click.INT, default=len(os.sched_getaffinity(0)))
 @click.option('-k', '--kernel-type', type=click.Choice(sorted(CLI_DISTROS.keys())))
-@click.option('-f', '--filter', default='')
+@click.option('-R', '--distro-filter', default='')
+@click.option('-f', '--kernel-filter', default='')
 @click.option('-p', '--probe-name')
 @click.option('-r', '--retries', type=click.INT, default=1)
 @click.option('-s', '--source-dir')
@@ -115,7 +116,8 @@ def cli(debug):
 @click.option('-v', '--probe-version')
 @click.argument('package', nargs=-1)
 def build(builder_image_prefix,
-          download_concurrency, jobs, kernel_type, filter, probe_name, retries,
+          download_concurrency, jobs, kernel_type, distro_filter,
+          kernel_filter, probe_name, retries,
           source_dir, download_timeout, probe_version, package):
     workspace_dir = os.getcwd()
     builder_source = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -128,7 +130,7 @@ def build(builder_image_prefix,
     distro = distro_obj.distro_obj
     download_config = DownloadConfig(download_concurrency, download_timeout, retries, None)
 
-    kernels = distro_obj.get_kernels(workspace, package, download_config, filter)
+    kernels = distro_obj.get_kernels(workspace, package, download_config, distro_filter, kernel_filter)
     kernel_dirs = distro_builder.unpack_kernels(workspace, distro.distro, kernels)
 
     with ThreadPoolExecutor(max_workers=jobs) as executor:
@@ -143,9 +145,10 @@ def build(builder_image_prefix,
 
 @click.command()
 @click.argument('distro', type=click.Choice(sorted(DISTROS.keys())))
+@click.argument('distro_filter', required=False, default='')
 @click.argument('version', required=False, default='')
-def crawl(distro, version=''):
-    kernels = crawl_kernels(distro, version)
+def crawl(distro, distro_filter='', version=''):
+    kernels = crawl_kernels(distro, distro_filter, version)
     for release, packages in kernels.items():
         print('=== {} ==='.format(release))
         for pkg in packages:

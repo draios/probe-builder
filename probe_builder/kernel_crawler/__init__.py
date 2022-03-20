@@ -32,7 +32,9 @@ DISTROS = {
 }
 
 
-def crawl_kernels(distro, version=''):
-    dist = DISTROS[distro]
-
-    return dist().get_package_tree(version)
+def crawl_kernels(distro, distro_filter='', kernel_filter=''):
+    dist = DISTROS[distro]()
+    dist.set_distro_filter(distro_filter)
+    pt = dist.get_package_tree(kernel_filter)
+    dist.set_distro_filter('')
+    return pt
