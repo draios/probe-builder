@@ -91,6 +91,9 @@ class DistroBuilder(object):
         # let build() figure out if it actually needs to build or pull anything
         builder_image.build(workspace, dockerfile, dockerfile_tag)
 
+        if not dockerfile.endswith('-bpf'):
+            ebpf_skip_reason = "Dockerfile {} does not end with -bpf".format(dockerfile)
+
         image_name = '{}sysdig-probe-builder:{}'.format(workspace.image_prefix, dockerfile_tag)
         container_name = 'sysdig-probe-builder-{}'.format(dockerfile_tag)
 

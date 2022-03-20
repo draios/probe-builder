@@ -1,6 +1,7 @@
 import os
 import logging
 import re
+import glob
 
 from ..version import Version
 
@@ -38,8 +39,9 @@ def choose_distro_dockerfile(builder_source, _builder_distro, kernel_dir):
         return
 
     dockerfile = os.path.join(builder_source, 'Dockerfile.{}'.format(distro_tag))
-    if os.path.exists(dockerfile):
-        return dockerfile, distro_tag
+    m = glob.glob(dockerfile+'*')
+    if m:
+        return m[0], distro_tag
 
 
 def get_kernel_gcc_version(kernel_dir):
@@ -113,17 +115,23 @@ def choose_gcc_dockerfile(builder_source, builder_distro, kernel_dir):
     #   10.0
     # and now we properly realize that gcc 10 is newer than 9.2, not older than 4.4
     prefix = 'Dockerfile.{}-gcc'.format(builder_distro)
-    dockerfile_versions = [Version(f[len(prefix):]) for f in os.listdir(builder_source) if f.startswith(prefix)]
-    dockerfile_versions.sort()
+    regex = re.compile('^' + re.escape(prefix) + '(?P<gccver>[0-9]+\.[0-9]+)(?P<bpf>(\-bpf)?)$')
+    dockerfile_versions = [
+        (Version(regex.match(f).group('gccver')), f)
+        for f in os.listdir(builder_source)
+        if regex.match(f)
+    ]
+    dockerfile_versions.sort(key=lambda t: t[0])
     logger.debug('available dockerfiles: {!r}'.format(dockerfile_versions))
 
-    chosen = None
-    for version in dockerfile_versions:
-        chosen = version
+    version = None
+    dockerfile = None
+    for _version, _dockerfile in dockerfile_versions:
+        version = _version
+        dockerfile = _dockerfile
         if version >= kernel_gcc:
             break
 
-    dockerfile = prefix + str(chosen)
     tag = dockerfile.replace('Dockerfile.', '')
     return os.path.join(builder_source, dockerfile), tag
 
