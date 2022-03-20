@@ -192,7 +192,8 @@ class DebRepository(repo.Repository):
         #           'http://security.ubuntu.com/ubuntu/pool/main/l/linux-signed-azure/linux-image-5.15.0-1001-azure_5.15.0-1001.2_amd64.deb'},
 
         deps = {}
-        logger.debug("packages=\n{}".format(pp.pformat(packages)))
+        # that's really really too much
+        #logger.debug("packages=\n{}".format(pp.pformat(packages)))
         logger.debug("package_list=\n{}".format(pp.pformat(package_list)))
         with click.progressbar(package_list, label='Building dependency tree', file=sys.stderr,
                                item_show_func=repo.to_s) as pkgs:
