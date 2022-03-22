@@ -3,7 +3,7 @@ import os
 
 from .. import docker
 from ..version import Version
-
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -13,28 +13,30 @@ logger = logging.getLogger(__name__)
 # cache the builders we have already built, so that we only
 # do this once
 builders = {}
+builders_lock = threading.Lock()
 
 def build(workspace, dockerfile, dockerfile_tag):
-    k = (dockerfile, dockerfile_tag)
-    obj = builders.get(k)
-    if obj is not None:
+    with builders_lock:
+        k = (dockerfile, dockerfile_tag)
+        obj = builders.get(k)
+        if obj is not None:
+            return obj
+        # for now we only cache the fact that the builder has been built...
+        obj = True
+        # ... but if we make this a factory @staticmethod of a proper class, we'll have to do this:
+        #obj = cls()
+
+        image_name = '{}sysdig-probe-builder:{}'.format(workspace.image_prefix, dockerfile_tag)
+        if workspace.image_prefix:
+            # image_prefix essentially means: we got this prebuilt (possibly from a docker repo)
+            pass
+        else:
+            # otherwise, we'll have to built it ourselves
+            docker.build(image_name, dockerfile, workspace.builder_source)
+
+        # cache the object
+        builders[k] = obj
         return obj
-    # for now we only cache the fact that the builder has been built...
-    obj = True
-    # ... but if we make this a factory @staticmethod of a proper class, we'll have to do this:
-    #obj = cls()
-
-    image_name = '{}sysdig-probe-builder:{}'.format(workspace.image_prefix, dockerfile_tag)
-    if workspace.image_prefix:
-        # image_prefix essentially means: we got this prebuilt (possibly from a docker repo)
-        pass
-    else:
-        # otherwise, we'll have to built it ourselves
-        docker.build(image_name, dockerfile, workspace.builder_source)
-
-    # cache the object
-    builders[k] = obj
-    return obj
 
 def run(workspace, probe, kernel_dir, kernel_release,
         config_hash, container_name, image_name, args):
