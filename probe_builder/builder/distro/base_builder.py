@@ -54,7 +54,7 @@ class DistroBuilder(object):
             logger.info('Skipping build of {} probe {}-{}: {}'.format(label, release, config_hash, skip_reason))
             return
 
-        docker.rm(container_name)
+        #docker.rm(container_name)
         try:
             lines = builder_image.run(workspace, probe, kernel_dir, release, config_hash, container_name, image_name, args)
         except subprocess.CalledProcessError:
@@ -95,7 +95,8 @@ class DistroBuilder(object):
             ebpf_skip_reason = "Builder {} does not support eBPF".format(dockerfile)
 
         image_name = '{}sysdig-probe-builder:{}'.format(workspace.image_prefix, dockerfile_tag)
-        container_name = 'sysdig-probe-builder-{}'.format(dockerfile_tag)
+        #container_name = 'sysdig-probe-builder-{}'.format(dockerfile_tag)
+        container_name = ''
 
         self.build_kernel_impl(config_hash, container_name, image_name, kernel_dir, probe, release, workspace, False,
                                kmod_skip_reason)
