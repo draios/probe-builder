@@ -46,7 +46,7 @@ build_kmod() {
 	mkdir -p /build/sysdig
 	cd /build/sysdig
 
-	call_cmake /build/probe/sysdig
+	call_cmake /code/sysdig-rw
 	make driver
 	strip -g driver/$PROBE_NAME.ko
 
@@ -67,10 +67,16 @@ build_bpf() {
 		echo "$CLANG not available, not building eBPF probe $PROBE_NAME-bpf-$PROBE_VERSION-$ARCH-$KERNEL_RELEASE-$HASH.o"
 	else
 		echo "Building eBPF probe $PROBE_NAME-bpf-$PROBE_VERSION-$ARCH-$KERNEL_RELEASE-$HASH.o"
-		make -C /build/probe/sysdig/driver/bpf clean all
-		cp /build/probe/sysdig/driver/bpf/probe.o $OUTPUT/$PROBE_NAME-bpf-$PROBE_VERSION-$ARCH-$KERNEL_RELEASE-$HASH.o
+		mkdir -p /build/sysdig
+		cd /build/sysdig
+		call_cmake /code/sysdig-rw
+		make -C /code/sysdig-rw/driver/bpf clean all
+		cp /code/sysdig-rw/driver/bpf/probe.o $OUTPUT/$PROBE_NAME-bpf-$PROBE_VERSION-$ARCH-$KERNEL_RELEASE-$HASH.o
 	fi
 }
+
+rm -rf /code/sysdig-rw
+cp -rf /code/sysdig-ro /code/sysdig-rw
 
 case "${1:-}" in
 	bpf) build_bpf;;
