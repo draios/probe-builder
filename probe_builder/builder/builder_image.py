@@ -39,11 +39,12 @@ def build(workspace, dockerfile, dockerfile_tag):
 def run(workspace, probe, kernel_dir, kernel_release,
         config_hash, container_name, image_name, args):
     volumes = [
-        docker.DockerVolume(workspace.host_workspace(), '/build/probe', False),
-        docker.DockerVolume(workspace.host_dir(probe.sysdig_dir), '/build/probe/sysdig', False),
+        docker.DockerVolume(workspace.host_dir(probe.sysdig_dir), '/code/sysdig-ro', True),
+        docker.DockerVolume(workspace.host_workspace(), '/build/probe', True),
+        docker.DockerVolume(workspace.host_workspace() + "/output", '/output', False),
     ]
     env = [
-        docker.EnvVar('OUTPUT', '/build/probe/output'),
+        docker.EnvVar('OUTPUT', '/output'),
         docker.EnvVar('PROBE_NAME', probe.probe_name),
         docker.EnvVar('PROBE_VERSION', probe.probe_version),
         docker.EnvVar('PROBE_DEVICE_NAME', probe.probe_device_name),
