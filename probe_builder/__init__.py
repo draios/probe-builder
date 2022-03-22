@@ -9,6 +9,7 @@ from . import kernel_crawler, disable_ipv6, git, docker
 from .builder import choose_builder, builder_image
 from .builder.distro import Distro
 from .context import Context, Workspace, Probe, DownloadConfig
+from concurrent.futures import ThreadPoolExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +97,6 @@ CLI_DISTROS = {
 def cli(debug):
     init_logging(debug)
 
-
 @click.command()
 @click.option('-b', '--builder-image-prefix', default='')
 @click.option('-d', '--download-concurrency', type=click.INT, default=1)
@@ -124,8 +124,16 @@ def build(builder_image_prefix,
 
     kernels = distro_obj.get_kernels(workspace, package, download_config, filter)
     kernel_dirs = distro_builder.unpack_kernels(workspace, distro.distro, kernels)
-    for release, target in kernel_dirs:
-        distro_builder.build_kernel(workspace, probe, distro.builder_distro, release, target)
+
+    parallelism = len(os.sched_getaffinity(0))
+    with ThreadPoolExecutor(max_workers=parallelism) as executor:
+        kernels_futures = []
+        for release, target in kernel_dirs:
+            future = executor.submit(distro_builder.build_kernel, workspace, probe, distro.builder_distro, release, target)
+            kernels_futures.append((release, future))
+
+    for release, future in kernels_futures:
+        print("Release: {}, Result: {}".format(release, future.result()))
 
 
 @click.command()
