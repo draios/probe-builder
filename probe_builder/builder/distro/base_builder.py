@@ -11,6 +11,8 @@ from probe_builder.kernel_crawler import crawl_kernels
 from probe_builder.kernel_crawler.download import download_batch
 from probe_builder.py23 import make_bytes, make_string
 
+from concurrent.futures import ThreadPoolExecutor
+
 logger = logging.getLogger(__name__)
 
 
@@ -22,6 +24,8 @@ def to_s(s):
 
 
 class DistroBuilder(object):
+
+    executor = ThreadPoolExecutor(len(os.sched_getaffinity(0)))
 
     @staticmethod
     def md5sum(path):

@@ -2,7 +2,7 @@ import logging
 import os
 import re
 
-import click
+import traceback
 
 from probe_builder.builder import toolkit
 from .base_builder import DistroBuilder
@@ -15,15 +15,21 @@ class CentosBuilder(DistroBuilder):
 
     def unpack_kernels(self, workspace, distro, kernels):
         kernel_dirs = list()
+        def unpack_release_packages(release, target, debs):
+            try:
+                for rpm in rpms:
+                    rpm_basename = os.path.basename(rpm)
+                    marker = os.path.join(target, '.' + rpm_basename)
+                    toolkit.unpack_rpm(workspace, rpm, target, marker)
+            except:
+                traceback.print_exc()
 
-        for release, rpms in kernels.items():
-            target = workspace.subdir('build', distro, release)
-            kernel_dirs.append((release, target))
-
-            for rpm in rpms:
-                rpm_basename = os.path.basename(rpm)
-                marker = os.path.join(target, '.' + rpm_basename)
-                toolkit.unpack_rpm(workspace, rpm, target, marker)
+        with self.executor as executor:
+            for release, rpms in kernels.items():
+                target = workspace.subdir('build', distro, release)
+                # FIXME this should be done inspecting the future
+                kernel_dirs.append((release, target))
+                executor.submit(unpack_release_packages, release, target, rpms)
 
         return kernel_dirs
 
