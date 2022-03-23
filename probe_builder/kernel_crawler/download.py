@@ -3,7 +3,8 @@ import zlib
 import requests
 import traceback
 import shutil
-from threading import Thread
+
+from concurrent.futures import ThreadPoolExecutor
 import os
 import logging
 
@@ -65,31 +66,26 @@ def download_file(url, output_file, download_config=None):
 def download_batch(urls, output_dir, download_config=None):
     if download_config is None:
         download_config = DownloadConfig.default()
-    q = Queue(1)
 
-    def dl():
-        while True:
-            url = q.get()
-            output_file = os.path.join(output_dir, os.path.basename(url))
+    # group all urls by target filename (basename), so to have a map:
+    # {'file.ext': ['url1', 'url2']}
+    urlmaps = {}
+    for url in urls:
+        urlmaps.setdefault(os.path.basename(url), []).append(url)
+
+    # inner function to be used to download a single from multiple sources sequentially
+    def download_multiple_sources(output_file, urls):
+        for url in urls:
             try:
                 download_file(url, output_file, download_config)
             except requests.exceptions.RequestException:
                 traceback.print_exc()
-            q.task_done()
 
-    for i in range(download_config.concurrency):
-        t = Thread(target=dl)
-        t.daemon = True
-        t.start()
-
-    for batch_url in urls:
-        q.put(batch_url)
-
-    q.join()
-    # TODO shouldn't we also wait for all threads to terminate,
-    # like it's done on the examples of python 3.7 (but NOT on 2.7/3.8/3.9)?
-    # see https://docs.python.org/3.7/library/queue.html
-
+    # use a parallel executor to download all stuff
+    with ThreadPoolExecutor(max_workers=download_config.concurrency) as executor:
+        for basename, urls in urlmaps.items():
+            output_file = os.path.join(output_dir, basename)
+            executor.submit(download_multiple_sources, output_file, urls)
 
 def get_url(url):
     resp = requests.get(url)
