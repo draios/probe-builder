@@ -11,13 +11,21 @@ import argparse
 import logging
 
 RHAPI_BASE_URL = "https://api.access.redhat.com/management/v1"
-DEFAULT_RPM_BUCKETS = [
-    "rhel-8-for-x86_64-baseos-rpms",
-    "rhel-8-for-x86_64-baseos-eus-rpms",
-    "rhocp-4.7-for-rhel-8-x86_64-rpms",
-    "rhel-9-for-x86_64-appstream-beta-rpms",
-    "rhel-9-for-x86_64-baseos-beta-rpms",
-]
+DEFAULT_RPM_BUCKETS = {
+    # Notice these are also the allowed values for '-m'
+    'x86_64':
+        [
+            "rhel-8-for-x86_64-baseos-rpms",
+            "rhel-8-for-x86_64-baseos-eus-rpms",
+            "rhocp-4.7-for-rhel-8-x86_64-rpms",
+            "rhel-9-for-x86_64-appstream-beta-rpms",
+            "rhel-9-for-x86_64-baseos-beta-rpms",
+        ],
+    's390x':
+        [
+            'rhel-8-for-s390x-baseos-eus-rpms',
+        ],
+}
 
 PKG_REGEXP = "^kernel-(core|devel)$"
 
@@ -75,12 +83,13 @@ parser.add_argument("-q", "--quiet", action="store_true")
 parser.add_argument("-v", "--verbose", action="store_true")
 parser.add_argument("-i", "--interactive", help="Interactive output to stderr", action="store_true")
 parser.add_argument("-o", "--outdir", help="Output directory", default=".")
+parser.add_argument("-m", "--machine", help="Machine type", choices=[DEFAULT_RPM_BUCKETS.keys()], default=os.uname().machine)
 
 args = parser.parse_args()
 
 # Provide default for buckets
 if not args.buckets:
-    args.buckets = DEFAULT_RPM_BUCKETS
+    args.buckets = DEFAULT_RPM_BUCKETS[args.machine]
 
 if args.verbose:
     level = logging.DEBUG
@@ -136,8 +145,8 @@ for bucket in args.buckets:
     retries = 0
     while not done:
         # I know about f-strings, I just don't like symbols being buried in strings, call me old-style
-        url = "{RHAPI_BASE_URL}/packages/cset/{bucket}/arch/x86_64".format(
-            RHAPI_BASE_URL=RHAPI_BASE_URL, bucket=bucket
+        url = "{RHAPI_BASE_URL}/packages/cset/{bucket}/arch/{machine}".format(
+            RHAPI_BASE_URL=RHAPI_BASE_URL, bucket=bucket, machine=args.machine
         )
         params = {"limit": 100, "offset": offset}
 
