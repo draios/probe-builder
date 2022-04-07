@@ -3,9 +3,17 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from collections import namedtuple
 import click
+import os
 import sys
 
-CrawlerFilter = namedtuple("CrawlerFilter", ["distro_filter", "kernel_filter"], defaults=["",""])
+def machine2arch(mach):
+    mach2arch = {
+        'x86_64': 'amd64',
+        'aarch64': 'arm64',
+    }
+    return mach2arch.get(mach, mach)
+
+CrawlerFilter = namedtuple("CrawlerFilter", ["machine", "arch", "distro_filter", "kernel_filter"], defaults=[os.uname().machine, machine2arch(os.uname().machine), "", ""])
 
 EMPTY_FILTER=CrawlerFilter()
 

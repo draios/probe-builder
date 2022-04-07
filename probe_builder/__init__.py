@@ -116,15 +116,17 @@ def cli(debug):
 @click.option('-s', '--source-dir')
 @click.option('-t', '--download-timeout', type=click.FLOAT)
 @click.option('-v', '--probe-version')
+@click.option('-m', '--machine', default=os.uname().machine)
 @click.argument('package', nargs=-1)
 def build(builder_image_prefix,
           download_concurrency, jobs, kernel_type, distro_filter,
           kernel_filter, probe_name, retries,
-          source_dir, download_timeout, probe_version, package):
+          source_dir, download_timeout, probe_version, machine, package):
     workspace_dir = os.getcwd()
     builder_source = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    workspace = Workspace(docker.is_privileged(), docker.get_mount_mapping(), workspace_dir, builder_source, builder_image_prefix)
+    arch = kernel_crawler.repo.machine2arch(machine)
+    workspace = Workspace(machine, arch, docker.is_privileged(), docker.get_mount_mapping(), workspace_dir, builder_source, builder_image_prefix)
     probe = get_probe(workspace, source_dir, probe_name, probe_version)
     distro_obj = CLI_DISTROS[kernel_type]
 
@@ -132,7 +134,7 @@ def build(builder_image_prefix,
     distro = distro_obj.distro_obj
     download_config = DownloadConfig(download_concurrency, download_timeout, retries, None)
 
-    crawler_filter = kernel_crawler.repo.CrawlerFilter(distro_filter=distro_filter, kernel_filter=kernel_filter)
+    crawler_filter = kernel_crawler.repo.CrawlerFilter(machine=machine, arch=arch, distro_filter=distro_filter, kernel_filter=kernel_filter)
 
     kernels = distro_obj.get_kernels(workspace, package, download_config, crawler_filter)
     kernel_dirs = distro_builder.unpack_kernels(workspace, distro.distro, kernels)

@@ -82,7 +82,7 @@ class DistroBuilder(object):
             args = []
 
         output_dir = workspace.subdir('output')
-        if builder_image.probe_built(probe, output_dir, release, config_hash, bpf):
+        if builder_image.probe_built(workspace.machine, probe, output_dir, release, config_hash, bpf):
             return cls.ProbeBuildResult(cls.ProbeBuildResult.BUILD_EXISTING, 0)
 
         if skip_reason:
@@ -99,7 +99,7 @@ class DistroBuilder(object):
             return cls.ProbeBuildResult(cls.ProbeBuildResult.BUILD_FAILED, took, e.output)
         else:
             took = time.time() - ts0
-            if builder_image.probe_built(probe, output_dir, release, config_hash, bpf):
+            if builder_image.probe_built(workspace.machine, probe, output_dir, release, config_hash, bpf):
                 logger.info("Build for {} probe {}-{} successful (took {:.3f}s)".format(label, release, config_hash, took))
                 return cls.ProbeBuildResult(cls.ProbeBuildResult.BUILD_BUILT, took)
             else:
@@ -112,8 +112,8 @@ class DistroBuilder(object):
         config_hash = self.hash_config(release, target)
         output_dir = workspace.subdir('output')
 
-        kmod_skip_reason = builder_image.skip_build(probe, output_dir, release, config_hash, False)
-        ebpf_skip_reason = builder_image.skip_build(probe, output_dir, release, config_hash, True)
+        kmod_skip_reason = builder_image.skip_build(workspace.machine, probe, output_dir, release, config_hash, False)
+        ebpf_skip_reason = builder_image.skip_build(workspace.machine, probe, output_dir, release, config_hash, True)
         try:
             os.makedirs(output_dir, 0o755)
         except OSError as exc:

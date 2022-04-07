@@ -15,7 +15,7 @@ def get_al_repo(repo_root, repo_release):
     repo_pointer = repo_root + repo_release + "/mirror.list"
     resp = get_url(repo_pointer)
     # Some distributions have a trailing slash (like AmazonLinux2022), some don't.
-    return make_string(resp.splitlines()[0]).replace('$basearch', 'x86_64').rstrip('/') + '/'
+    return make_string(resp.splitlines()[0]).rstrip('/') + '/'
 
 
 class AmazonLinux1Mirror(repo.Distro):
@@ -38,7 +38,7 @@ class AmazonLinux1Mirror(repo.Distro):
         with click.progressbar(
                 self.AL1_REPOS, label='Checking repositories', file=sys.stderr, item_show_func=repo.to_s) as repos:
             for r in repos:
-                repo_urls.add(get_al_repo("http://repo.us-east-1.amazonaws.com/", r))
+                repo_urls.add(get_al_repo("http://repo.us-east-1.amazonaws.com/", r + '/' + crawler_filter.machine))
         return [rpm.RpmRepository(url) for url in sorted(repo_urls)]
 
 
@@ -58,7 +58,7 @@ class AmazonLinux2Mirror(repo.Distro):
         with click.progressbar(
                 self.AL2_REPOS, label='Checking repositories', file=sys.stderr, item_show_func=repo.to_s) as repos:
             for r in repos:
-                repo_urls.add(get_al_repo("http://amazonlinux.us-east-1.amazonaws.com/2/", r + '/x86_64'))
+                repo_urls.add(get_al_repo("http://amazonlinux.us-east-1.amazonaws.com/2/", r + '/' + crawler_filter.machine))
         return [rpm.RpmRepository(url) for url in sorted(repo_urls)]
 
 class AmazonLinux2022Mirror(repo.Distro):
@@ -91,10 +91,10 @@ class AmazonLinux2022Mirror(repo.Distro):
     def list_repos(self, crawler_filter):
         repos = []
         for base_url in self.AL202X_BASE_URLS:
-            repos.extend(self.list_repos_for_url(base_url=base_url))
+            repos.extend(self.list_repos_for_url(base_url=base_url, crawler_filter=crawler_filter))
         return repos
 
-    def list_repos_for_url(self, base_url):
+    def list_repos_for_url(self, base_url, crawler_filter):
         # List of all available releases
         releasemd_url = "{}/{}".format(base_url, "core/releasemd.xml")
         releasemd_xml = get_url(releasemd_url)
@@ -122,7 +122,7 @@ class AmazonLinux2022Mirror(repo.Distro):
                     print("Adding repo {}".format(r), flush=True)
                     repo_url = get_al_repo(
                         "{}/{}".format(base_url, "core/mirrors/"),
-                        r + '/x86_64'
+                        r + '/' + crawler_filter.machine
                     )
                     repo_urls.add(repo_url)
                 except requests.exceptions.HTTPError as err:
