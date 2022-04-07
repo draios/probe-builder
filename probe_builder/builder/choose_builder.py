@@ -90,6 +90,8 @@ def get_kernel_gcc_version(kernel_dir):
 
 def choose_gcc_dockerfile(builder_source, builder_distro, kernel_dir):
     kernel_gcc = get_kernel_gcc_version(kernel_dir)
+    logger.debug('kernel gcc version: {}'.format(kernel_gcc))
+
     # We don't really care about the compiler patch levels, only the major/minor version
     kernel_gcc = Version(kernel_gcc)
 
@@ -146,6 +148,7 @@ def choose_gcc_dockerfile(builder_source, builder_distro, kernel_dir):
     dockerfile, _, support_bpf = dockerfile_version
     # get a tag we'll use for builders
     tag = dockerfile.replace('Dockerfile.', '')
+    logger.debug('elected dockerfile: {}'.format(dockerfile))
     # return the tuple ("/path/to/Dockerfile.centos-gcc11.0-bpf", "gcc11.0-bpf", True)
     return os.path.join(builder_source, dockerfile), tag, support_bpf
 

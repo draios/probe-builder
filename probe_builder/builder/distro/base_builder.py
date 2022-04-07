@@ -2,6 +2,7 @@ import errno
 import logging
 import os
 import subprocess
+import time
 
 import click
 
@@ -56,13 +57,15 @@ class DistroBuilder(object):
 
         #docker.rm(container_name)
         try:
+            ts0 = time.time()
             lines = builder_image.run(workspace, probe, kernel_dir, release, config_hash, container_name, image_name, args)
+            ts1 = time.time()
         except subprocess.CalledProcessError:
-            logger.error("Build failed for {} probe {}-{}".format(label, release, config_hash))
+            logger.error("Build failed for {} probe {}-{} (took {:.3f}s)".format(label, release, config_hash, ts1-ts0))
         else:
             output_dir = workspace.subdir('output')
             if builder_image.probe_built(probe, output_dir, release, config_hash, bpf):
-                logger.info("Build for {} probe {}-{} successful".format(label, release, config_hash))
+                logger.info("Build for {} probe {}-{} successful (took {:.3f}s)".format(label, release, config_hash, ts1-ts0))
             else:
                 logger.warn("Build for {} probe {}-{} failed silently: no output file found".format(label, release, config_hash))
                 for line in lines:
@@ -88,8 +91,14 @@ class DistroBuilder(object):
         kernel_dir = self.get_kernel_dir(workspace, release, target)
         dockerfile, dockerfile_tag, support_bpf = choose_builder.choose_dockerfile(workspace.builder_source, builder_distro,
                                                                       kernel_dir)
+
+        ts0 = time.time()
         # let build() figure out if it actually needs to build or pull anything
         builder_image.build(workspace, dockerfile, dockerfile_tag)
+        ts1 = time.time()
+
+        logger.info("Docker building of {} took {:.2f}s".format(dockerfile, ts1-ts0))
+        took = ts1 - ts0
 
         if not support_bpf:
             ebpf_skip_reason = "Builder {} does not support eBPF".format(dockerfile)
