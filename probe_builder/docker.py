@@ -33,7 +33,7 @@ class EnvVar(object):
         return '{}={}'.format(self.name, self.value)
 
 
-def run(image, volumes, command, env, privileged=False, name=None):
+def run(arch, image, volumes, command, env, privileged=False, name=None):
     cmd = ['docker', 'run', '--rm']
     if privileged:
         cmd.append('--privileged')
@@ -46,15 +46,15 @@ def run(image, volumes, command, env, privileged=False, name=None):
     if name is not None:
         cmd.append('--name')
         cmd.append(str(name))
-    cmd.append(image)
+    cmd.append('{}-{}'.format(image, arch))
     cmd.extend(command)
 
     # return stdout
     return pipe(cmd)
 
 
-def build(image, dockerfile, context_dir):
-    pipe(['docker', 'build', '-t', str(image), '-f', str(dockerfile), str(context_dir)])
+def build(arch, image, dockerfile, context_dir):
+    pipe(['docker', 'buildx', 'build', '-t', '{}-{}'.format(str(image), arch), '-f', str(dockerfile), '--platform=linux/{}'.format(arch), str(context_dir)])
     remove_dangling_images()
 
 

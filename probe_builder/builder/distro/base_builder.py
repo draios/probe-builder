@@ -65,7 +65,7 @@ class DistroBuilder(object):
         else:
             took = time.time() - ts0
             output_dir = workspace.subdir('output')
-            if builder_image.probe_built(probe, output_dir, release, config_hash, bpf):
+            if builder_image.probe_built(workspace.machine, probe, output_dir, release, config_hash, bpf):
                 logger.info("Build for {} probe {}-{} successful (took {:.3f}s)".format(label, release, config_hash, took))
             else:
                 logger.warn("Build for {} probe {}-{} failed silently: no output file found".format(label, release, config_hash))
@@ -76,8 +76,8 @@ class DistroBuilder(object):
         config_hash = self.hash_config(release, target)
         output_dir = workspace.subdir('output')
 
-        kmod_skip_reason = builder_image.skip_build(probe, output_dir, release, config_hash, False)
-        ebpf_skip_reason = builder_image.skip_build(probe, output_dir, release, config_hash, True)
+        kmod_skip_reason = builder_image.skip_build(workspace.machine, probe, output_dir, release, config_hash, False)
+        ebpf_skip_reason = builder_image.skip_build(workspace.machine, probe, output_dir, release, config_hash, True)
         if kmod_skip_reason and ebpf_skip_reason:
             logger.info('Skipping build of kmod probe {}-{}: {}'.format(release, config_hash, kmod_skip_reason))
             logger.info('Skipping build of eBPF probe {}-{}: {}'.format(release, config_hash, ebpf_skip_reason))

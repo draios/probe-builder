@@ -32,7 +32,7 @@ def build(workspace, dockerfile, dockerfile_tag):
             pass
         else:
             # otherwise, we'll have to built it ourselves
-            docker.build(image_name, dockerfile, workspace.builder_source)
+            docker.build(workspace.arch, image_name, dockerfile, workspace.builder_source)
 
         # cache the object
         builders[k] = obj
@@ -56,18 +56,17 @@ def run(workspace, probe, kernel_dir, kernel_release,
         docker.EnvVar('HASH_ORIG', config_hash)
     ]
 
-    return docker.run(image_name, volumes, args, env, name=container_name)
+    return docker.run(workspace.arch, image_name, volumes, args, env, name=container_name)
 
 
-def probe_output_file(probe, kernel_release, config_hash, bpf):
-    arch = os.uname()[4]
+def probe_output_file(mach, probe, kernel_release, config_hash, bpf):
     if bpf:
         return '{}-bpf-{}-{}-{}-{}.o'.format(
-            probe.probe_name, probe.probe_version, arch, kernel_release, config_hash
+            probe.probe_name, probe.probe_version, mach, kernel_release, config_hash
         )
     else:
         return '{}-{}-{}-{}-{}.ko'.format(
-            probe.probe_name, probe.probe_version, arch, kernel_release, config_hash
+            probe.probe_name, probe.probe_version, mach, kernel_release, config_hash
         )
 
 
@@ -76,12 +75,12 @@ SKIPPED_KERNELS = [
     ("5.8.0-1023-aws", "3f7746be1bef4c3f68f5465d8453fa4d"),
 ]
 
-def probe_built(probe, output_dir, kernel_release, config_hash, bpf):
-    probe_file_name = probe_output_file(probe, kernel_release, config_hash, bpf)
+def probe_built(mach, probe, output_dir, kernel_release, config_hash, bpf):
+    probe_file_name = probe_output_file(mach, probe, kernel_release, config_hash, bpf)
     return os.path.exists(os.path.join(output_dir, probe_file_name))
 
-def skip_build(probe, output_dir, kernel_release, config_hash, bpf):
-    if probe_built(probe, output_dir, kernel_release, config_hash, bpf):
+def skip_build(mach, probe, output_dir, kernel_release, config_hash, bpf):
+    if probe_built(mach, probe, output_dir, kernel_release, config_hash, bpf):
         return "Already built"
 
     if (kernel_release, config_hash) in SKIPPED_KERNELS:

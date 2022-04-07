@@ -92,6 +92,14 @@ CLI_DISTROS = {
 }
 
 
+def machine2arch(mach):
+    mach2arch = {
+        'x86_64': 'amd64',
+        'aarch64': 'arm64',
+    }
+    return mach2arch.get(mach, mach)
+
+
 @click.group()
 @click.option('--debug/--no-debug')
 def cli(debug):
@@ -109,14 +117,15 @@ def cli(debug):
 @click.option('-s', '--source-dir')
 @click.option('-t', '--download-timeout', type=click.FLOAT)
 @click.option('-v', '--probe-version')
+@click.option('-m', '--machine', default=os.uname().machine)
 @click.argument('package', nargs=-1)
 def build(builder_image_prefix,
           download_concurrency, jobs, kernel_type, filter, probe_name, retries,
-          source_dir, download_timeout, probe_version, package):
+          source_dir, download_timeout, probe_version, machine, package):
     workspace_dir = os.getcwd()
     builder_source = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    workspace = Workspace(docker.is_privileged(), docker.get_mount_mapping(), workspace_dir, builder_source, builder_image_prefix)
+    workspace = Workspace(machine, machine2arch(machine), docker.is_privileged(), docker.get_mount_mapping(), workspace_dir, builder_source, builder_image_prefix)
     probe = get_probe(workspace, source_dir, probe_name, probe_version)
     distro_obj = CLI_DISTROS[kernel_type]
 
