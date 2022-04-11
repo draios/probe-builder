@@ -14,6 +14,16 @@ set -euo pipefail
 
 ARCH=$(uname -m)
 
+call_cmake() {
+	SRC_DIR=$1
+	if [[ -f ${SRC_DIR}/driver/API_VERSION ]]; then
+		# New naming
+		cmake -DCMAKE_BUILD_TYPE=Release -DDRIVER_NAME=$PROBE_NAME -DDRIVER_VERSION=$PROBE_VERSION -DDRIVER_DEVICE_NAME=$PROBE_DEVICE_NAME -DCREATE_TEST_TARGETS=OFF ${SRC_DIR}
+	else
+		cmake -DCMAKE_BUILD_TYPE=Release -DPROBE_NAME=$PROBE_NAME -DPROBE_VERSION=$PROBE_VERSION -DPROBE_DEVICE_NAME=$PROBE_DEVICE_NAME -DCREATE_TEST_TARGETS=OFF ${SRC_DIR}
+	fi
+}
+
 build_kmod() {
 	if [[ -f "${KERNELDIR}/scripts/gcc-plugins/stackleak_plugin.so" ]]; then
 		echo "Rebuilding gcc plugins for ${KERNELDIR}"
@@ -25,7 +35,7 @@ build_kmod() {
 	mkdir -p /build/sysdig
 	cd /build/sysdig
 
-	cmake -DCMAKE_BUILD_TYPE=Release -DPROBE_NAME=$PROBE_NAME -DPROBE_VERSION=$PROBE_VERSION -DPROBE_DEVICE_NAME=$PROBE_DEVICE_NAME -DCREATE_TEST_TARGETS=OFF /build/probe/sysdig
+	call_cmake /build/probe/sysdig
 	make driver
 	strip -g driver/$PROBE_NAME.ko
 
