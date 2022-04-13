@@ -65,6 +65,7 @@ class AmazonLinux2022Mirror(repo.Distro):
     # docker run -it --rm amazonlinux:2022 python3 -c 'import dnf, json; db = dnf.dnf.Base(); print(json.dumps(db.conf.substitutions, indent=2))'
     AL2022_REPOS = [
         '2022.0.20220202',
+        '2022.0.20220315',
     ]
 
     def __init__(self):
