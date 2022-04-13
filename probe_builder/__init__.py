@@ -75,6 +75,7 @@ class LocalDistro(object):
 CLI_DISTROS = {
     'AmazonLinux': CrawlDistro('amazonlinux', 'centos', 'AmazonLinux'),
     'AmazonLinux2': CrawlDistro('amazonlinux2', 'centos', 'AmazonLinux2'),
+    'AmazonLinux2022': CrawlDistro('amazonlinux2022', 'centos', 'AmazonLinux2022'),
     'CentOS': CrawlDistro('centos', 'centos', 'CentOS'),
     'Debian': CrawlDistro('debian', 'debian', 'Debian'),
     'Fedora': CrawlDistro('fedora', 'centos', 'Fedora'),
