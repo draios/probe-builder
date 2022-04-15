@@ -86,13 +86,13 @@ class DistroBuilder(object):
                 raise
 
         kernel_dir = self.get_kernel_dir(workspace, release, target)
-        dockerfile, dockerfile_tag = choose_builder.choose_dockerfile(workspace.builder_source, builder_distro,
+        dockerfile, dockerfile_tag, support_bpf = choose_builder.choose_dockerfile(workspace.builder_source, builder_distro,
                                                                       kernel_dir)
         # let build() figure out if it actually needs to build or pull anything
         builder_image.build(workspace, dockerfile, dockerfile_tag)
 
-        if not dockerfile.endswith('-bpf'):
-            ebpf_skip_reason = "Dockerfile {} does not end with -bpf".format(dockerfile)
+        if not support_bpf:
+            ebpf_skip_reason = "Builder {} does not support eBPF".format(dockerfile)
 
         image_name = '{}sysdig-probe-builder:{}'.format(workspace.image_prefix, dockerfile_tag)
         container_name = 'sysdig-probe-builder-{}'.format(dockerfile_tag)

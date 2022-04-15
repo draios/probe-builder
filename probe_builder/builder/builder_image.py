@@ -26,10 +26,8 @@ def build(workspace, dockerfile, dockerfile_tag):
 
     image_name = '{}sysdig-probe-builder:{}'.format(workspace.image_prefix, dockerfile_tag)
     if workspace.image_prefix:
-        # image_prefix essentially means: get this from a docker repo
+        # image_prefix essentially means: we got this prebuilt (possibly from a docker repo)
         pass
-        # TODO here we should have something like
-        # docker.pull(image_name)
     else:
         # otherwise, we'll have to built it ourselves
         docker.build(image_name, dockerfile, workspace.builder_source)
