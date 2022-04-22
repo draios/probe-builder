@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 AUTOCONF_RE = re.compile('^#define CONFIG_GCC_VERSION ([0-9][0-9]?)([0-9][0-9])([0-9][0-9])$')
 LINUX_COMPILER_RE = re.compile('^#define LINUX_COMPILER "gcc version ([0-9.]+)')
 FEDORA_KERNEL_RE = re.compile(r'.*\.(fc[0-9]+)\..*Kernel Configuration$')
+AMAZONLINUX2_KERNEL_RE = re.compile(r'.*\.amzn2\..*Kernel Configuration$')
 
 
 def get_kernel_distro_tag(kernel_dir):
@@ -29,6 +30,9 @@ def get_kernel_distro_tag(kernel_dir):
                 if m:
                     distro_tag = m.group(1)
                     return distro_tag
+                m = AMAZONLINUX2_KERNEL_RE.match(line)
+                if m:
+                    return 'amzn2'
     except IOError:
         pass
 

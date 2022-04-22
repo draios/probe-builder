@@ -1,0 +1,24 @@
+FROM amazonlinux:2
+
+RUN yum -y install \
+	wget \
+	git \
+	gcc \
+	gcc-c++ \
+	autoconf \
+	bison \
+	flex \
+	make \
+	cmake \
+	elfutils-devel \
+	findutils \
+	kmod \
+	clang7.0 \
+	llvm7.0 \
+	python-lxml && yum clean all
+
+ADD builder-entrypoint.sh /
+ENV CLANG clang-7
+ENV LLC llc-7.0
+WORKDIR /build/probe
+ENTRYPOINT [ "/builder-entrypoint.sh" ]

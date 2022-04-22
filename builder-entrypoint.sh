@@ -10,6 +10,13 @@
 # PROBE_NAME
 # PROBE_VERSION
 
+# optional env vars
+# CLANG
+# LLC
+
+export CLANG=${CLANG:-clang}
+export LLC=${LLC:-llc}
+
 set -euo pipefail
 
 ARCH=$(uname -m)
@@ -55,9 +62,9 @@ build_kmod() {
 
 
 build_bpf() {
-	if ! type -p clang > /dev/null
+	if ! type -p $CLANG > /dev/null
 	then
-		echo "clang not available, not building eBPF probe $PROBE_NAME-bpf-$PROBE_VERSION-$ARCH-$KERNEL_RELEASE-$HASH.o"
+		echo "$CLANG not available, not building eBPF probe $PROBE_NAME-bpf-$PROBE_VERSION-$ARCH-$KERNEL_RELEASE-$HASH.o"
 	else
 		echo "Building eBPF probe $PROBE_NAME-bpf-$PROBE_VERSION-$ARCH-$KERNEL_RELEASE-$HASH.o"
 		make -C /build/probe/sysdig/driver/bpf clean all
