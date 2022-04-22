@@ -18,6 +18,8 @@ RUN yum -y install \
 	python-lxml && yum clean all
 
 ADD builder-entrypoint.sh /
+# Enforce usage of clang 7, as it's more battle tested than clang 11
+# which comes in the default clang package on AmazonLinux2
 ENV CLANG clang-7
 ENV LLC llc-7.0
 WORKDIR /build/probe
