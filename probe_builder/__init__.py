@@ -84,6 +84,7 @@ CLI_DISTROS = {
     'Oracle7': CrawlDistro('oracle7', 'oracle', 'Oracle7'),
     'Oracle8': CrawlDistro('oracle8', 'oracle', 'Oracle8'),
     'Ubuntu': CrawlDistro('ubuntu', 'ubuntu', 'Ubuntu'),
+    'PhotonOS': CrawlDistro('photonos', 'photonos', 'PhotonOS'),
     'CustomCentOS': LocalDistro('custom-centos', 'centos'),
     'CustomDebian': LocalDistro('custom-debian', 'debian'),
     'CustomUbuntu': LocalDistro('custom-ubuntu', 'ubuntu'),

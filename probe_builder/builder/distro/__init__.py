@@ -3,6 +3,7 @@ from .centos import CentosBuilder
 from .debian import DebianBuilder
 from .flatcar import FlatcarBuilder
 from .ubuntu import UbuntuBuilder
+from .photonos import PhotonosBuilder
 
 
 class Distro(namedtuple('Distro', 'distro builder_distro')):
@@ -19,4 +20,5 @@ DISTRO_BUILDERS = {
     'flatcar': FlatcarBuilder,
     'ubuntu': UbuntuBuilder,
     'oracle': CentosBuilder,
+    'photonos': PhotonosBuilder,
 }
