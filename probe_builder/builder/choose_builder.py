@@ -96,7 +96,7 @@ def choose_gcc_dockerfile(builder_source, builder_distro, kernel_dir):
     kernel_gcc = get_kernel_gcc_version(kernel_dir)
     # We don't really care about the compiler patch levels, only the major/minor version
     kernel_gcc = Version(kernel_gcc)
-    logger.debug('found gcc version {}'.format(kernel_gcc))
+    logger.debug('found kernel gcc version {}'.format(kernel_gcc))
 
     # Choose the right gcc version from the ones we have available (as Docker images)
     # - if we have the exact minor version, use it
