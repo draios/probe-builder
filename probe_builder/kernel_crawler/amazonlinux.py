@@ -66,6 +66,8 @@ class AmazonLinux2022Mirror(repo.Distro):
     AL2022_REPOS = [
         '2022.0.20220202',
         '2022.0.20220315',
+        '2022.0.20220419',
+        '2022.0.20220504',
     ]
 
     def __init__(self):
