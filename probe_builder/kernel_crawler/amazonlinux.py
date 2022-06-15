@@ -92,7 +92,7 @@ class AmazonLinux2022Mirror(repo.Distro):
         expr = "//root/releases/release[last()]/@version"
 
         # However, if you ever need to list ALL releases, use the following expression instead
-        expr = "//root/releases/release/@version"
+        #expr = "//root/releases/release/@version"
 
         releases = e.xpath(expr)
 
@@ -112,7 +112,7 @@ class AmazonLinux2022Mirror(repo.Distro):
                         r + '/x86_64'
                     )
                     repo_urls.add(repo_url)
-                except requests.exceptions.HTTPError:
-                    print("WARNING: Could not get data for AmazonLinux2022 release: {}".format(r), flush=True)
+                except requests.exceptions.HTTPError as err:
+                    print("WARNING: Could not get data for AmazonLinux2022 release: {}. Got error: {}".format(r, err), flush=True)
 
         return [rpm.RpmRepository(url) for url in sorted(repo_urls)]
