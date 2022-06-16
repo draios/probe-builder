@@ -113,14 +113,14 @@ One possible way is to use [Apache Traffic Server](https://docs.trafficserver.ap
 
 Here is one known-to-work configuration:
 
-```
+```shell
 $ traffic_server --version
 Traffic Server 8.1.1 Jul 15 2021 19:48:17 localhost
 traffic_server: using root directory '/usr'
 Apache Traffic Server - traffic_server - 8.1.1 - (build # 071519 on Jul 15 2021 at 19:48:17)
 ```
 
-```
+```shell
 $ diff -Naur /etc/trafficserver/records.config records.config
 --- /etc/trafficserver/records.config	2021-07-15 21:48:17.000000000 +0200
 +++ records.config	2022-03-18 16:10:10.219544524 +0100
@@ -153,7 +153,7 @@ $ diff -Naur /etc/trafficserver/records.config records.config
  # SSL Termination. Docs:
 ```
 
-```
+```shell
 $ diff -Naur /etc/trafficserver/storage.config storage.config
 --- /etc/trafficserver/storage.config	2021-07-15 21:48:17.000000000 +0200
 +++ storage.config	2022-03-18 15:49:53.017949468 +0100
@@ -169,7 +169,7 @@ More information can be found in the [documentation](https://docs.trafficserver.
 
 When running the  `sysdig-probe-builder` container, you only need to specify:
 
-```
+```shell
 $ docker run -i --rm \
      <other args> \
      -e HTTP_PROXY=http://172.17.0.1:8080 \
