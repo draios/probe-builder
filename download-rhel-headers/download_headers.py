@@ -15,11 +15,13 @@ DEFAULT_RPM_BUCKETS = {
     # Notice these are also the allowed values for '-m'
     'x86_64':
         [
-            "rhel-8-for-x86_64-baseos-rpms",
-            "rhel-8-for-x86_64-baseos-eus-rpms",
-            "rhocp-4.7-for-rhel-8-x86_64-rpms",
-            "rhel-9-for-x86_64-appstream-beta-rpms",
-            "rhel-9-for-x86_64-baseos-beta-rpms",
+            "rhel-8-for-x86_64-baseos-rpms",        # TBC https://cdn.redhat.com/content/dist/rhel8/8/x86_64/baseos/os
+            "rhel-8-for-x86_64-baseos-eus-rpms",    # TBC https://cdn.redhat.com/content/eus/rhel8/8/x86_64/baseos/os
+            "rhocp-4.7-for-rhel-8-x86_64-rpms",     # ????
+            "rhel-9-for-x86_64-appstream-rpms",     # TBC https://cdn.redhat.com/content/dist/rhel9/9/x86_64/appstream/os
+            "rhel-9-for-x86_64-baseos-rpms",        # TBC https://cdn.redhat.com/content/dist/rhel9/9/x86_64/baseos/os
+            "rhel-9-for-x86_64-baseos-eus-rpms",    # TBC https://cdn.redhat.com/content/eus/rhel9/9/x86_64/baseos/os
+            "rhel-9-for-x86_64-baseos-e4s-rpms",    # TBC https://cdn.redhat.com/content/e4s/rhel9/9/x86_64/baseos/os
         ],
     's390x':
         [
