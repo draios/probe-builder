@@ -148,7 +148,7 @@ def choose_gcc_dockerfile(builder_source, builder_distro, kernel_dir):
     dockerfile, _, support_bpf = dockerfile_version
     # get a tag we'll use for builders
     tag = dockerfile.replace('Dockerfile.', '')
-    logger.debug('elected dockerfile: {}'.format(dockerfile))
+    logger.debug('chosen dockerfile for the builder: {}'.format(dockerfile))
     # return the tuple ("/path/to/Dockerfile.centos-gcc11.0-bpf", "gcc11.0-bpf", True)
     return os.path.join(builder_source, dockerfile), tag, support_bpf
 

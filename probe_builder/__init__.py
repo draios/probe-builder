@@ -97,9 +97,11 @@ CLI_DISTROS = {
 def cli(debug):
     init_logging(debug)
 
+
 @click.command()
 @click.option('-b', '--builder-image-prefix', default='')
 @click.option('-d', '--download-concurrency', type=click.INT, default=1)
+@click.option('-j', '--jobs', type=click.INT, default=len(os.sched_getaffinity(0)))
 @click.option('-k', '--kernel-type', type=click.Choice(sorted(CLI_DISTROS.keys())))
 @click.option('-f', '--filter', default='')
 @click.option('-p', '--probe-name')
@@ -109,7 +111,7 @@ def cli(debug):
 @click.option('-v', '--probe-version')
 @click.argument('package', nargs=-1)
 def build(builder_image_prefix,
-          download_concurrency, kernel_type, filter, probe_name, retries,
+          download_concurrency, jobs, kernel_type, filter, probe_name, retries,
           source_dir, download_timeout, probe_version, package):
     workspace_dir = os.getcwd()
     builder_source = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -125,8 +127,7 @@ def build(builder_image_prefix,
     kernels = distro_obj.get_kernels(workspace, package, download_config, filter)
     kernel_dirs = distro_builder.unpack_kernels(workspace, distro.distro, kernels)
 
-    parallelism = len(os.sched_getaffinity(0))
-    with ThreadPoolExecutor(max_workers=parallelism) as executor:
+    with ThreadPoolExecutor(max_workers=jobs) as executor:
         kernels_futures = []
         for release, target in kernel_dirs:
             future = executor.submit(distro_builder.build_kernel, workspace, probe, distro.builder_distro, release, target)
