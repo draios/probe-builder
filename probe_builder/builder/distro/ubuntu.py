@@ -29,39 +29,46 @@ class UbuntuBuilder(DistroBuilder):
     def unpack_kernels(self, workspace, distro, kernels):
         kernel_dirs = list()
 
-        # notice how here kernels is a list of tuples
-        # ( '5.4.0-1063-aws', [".._5.4.0-1063.66_amd64.deb"] )
-        for release, debs in kernels:
-            # we don't have the version handy, so gather it from all the package
-            # names in the release. these all should match but at this point we can
-            # only validate that it is so
-            version = None
-
-            for deb in debs:
-                deb_basename = os.path.basename(deb)
-                m = self.KERNEL_VERSION_RE.search(deb_basename)
-                if not m:
-                    raise ValueError("{} doesn't look like a kernel package".format(deb))
-                if version is None:
-                    version = (m.group('version'), m.group('update'))
-                else:
-                    new_version = (m.group('version'), m.group('update'))
-                    if version[0] != new_version[0] and not new_version[1].startswith(version[1]):
-                        raise ValueError("Unexpected version {}/{} from package {} (expected {}/{})".format(
-                            new_version[0], new_version[1], deb,
-                            version[0], version[1]
-                        ))
-            # extracted files will end up in a directory derived from the version
-            # e.g. 5.4.0-1063/66
-            target = workspace.subdir('build', distro, version[0], version[1])
-            # which we will address by release
-            # ( '5.4.0-1063-aws', '/path/to/5.4.0-1063/66' )
-            kernel_dirs.append((release, target))
-
+        def unpack_release_packages(target, debs):
             for deb in debs:
                 deb_basename = os.path.basename(deb)
                 marker = os.path.join(target, '.' + deb_basename)
                 toolkit.unpack_deb(workspace, deb, target, marker)
+
+
+        with self.executor as executor:
+            # notice how here kernels is a list of tuples
+            # ( '5.4.0-1063-aws', [".._5.4.0-1063.66_amd64.deb"] )
+            for release, debs in kernels:
+                # we don't have the version handy, so gather it from all the package
+                # names in the release. these all should match but at this point we can
+                # only validate that it is so
+                version = None
+
+                for deb in debs:
+                    deb_basename = os.path.basename(deb)
+                    m = self.KERNEL_VERSION_RE.search(deb_basename)
+                    if not m:
+                        raise ValueError("{} doesn't look like a kernel package".format(deb))
+                    if version is None:
+                        version = (m.group('version'), m.group('update'))
+                    else:
+                        new_version = (m.group('version'), m.group('update'))
+                        if version[0] != new_version[0] and not new_version[1].startswith(version[1]):
+                            raise ValueError("Unexpected version {}/{} from package {} (expected {}/{})".format(
+                                new_version[0], new_version[1], deb,
+                                version[0], version[1]
+                            ))
+                # extracted files will end up in a directory derived from the version
+                # e.g. 5.4.0-1063/66
+                target = workspace.subdir('build', distro, version[0], version[1])
+                # which we will address by release
+                # ( '5.4.0-1063-aws', '/path/to/5.4.0-1063/66' )
+                # FIXME this should be done only after checking the return value of the future
+                kernel_dirs.append((release, target))
+
+                executor.submit(unpack_release_packages, target, debs)
+        # end of with
 
         return kernel_dirs
 
