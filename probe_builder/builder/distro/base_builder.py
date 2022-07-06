@@ -2,6 +2,7 @@ import errno
 import logging
 import os
 import subprocess
+import time
 
 import click
 
@@ -54,15 +55,18 @@ class DistroBuilder(object):
             logger.info('Skipping build of {} probe {}-{}: {}'.format(label, release, config_hash, skip_reason))
             return
 
-        docker.rm(container_name)
+        #docker.rm(container_name)
         try:
+            ts0 = time.time()
             lines = builder_image.run(workspace, probe, kernel_dir, release, config_hash, container_name, image_name, args)
         except subprocess.CalledProcessError:
-            logger.error("Build failed for {} probe {}-{}".format(label, release, config_hash))
+            took = time.time() - ts0
+            logger.error("Build failed for {} probe {}-{} (took {:.3f}s)".format(label, release, config_hash, took))
         else:
+            took = time.time() - ts0
             output_dir = workspace.subdir('output')
             if builder_image.probe_built(probe, output_dir, release, config_hash, bpf):
-                logger.info("Build for {} probe {}-{} successful".format(label, release, config_hash))
+                logger.info("Build for {} probe {}-{} successful (took {:.3f}s)".format(label, release, config_hash, took))
             else:
                 logger.warn("Build for {} probe {}-{} failed silently: no output file found".format(label, release, config_hash))
                 for line in lines:
@@ -88,14 +92,20 @@ class DistroBuilder(object):
         kernel_dir = self.get_kernel_dir(workspace, release, target)
         dockerfile, dockerfile_tag, support_bpf = choose_builder.choose_dockerfile(workspace.builder_source, builder_distro,
                                                                       kernel_dir)
+
+        ts0 = time.time()
         # let build() figure out if it actually needs to build or pull anything
         builder_image.build(workspace, dockerfile, dockerfile_tag)
+        took = time.time() - ts0
+
+        logger.info("Docker building of {} took {:.2f}s".format(dockerfile, took))
 
         if not support_bpf:
             ebpf_skip_reason = "Builder {} does not support eBPF".format(dockerfile)
 
         image_name = '{}sysdig-probe-builder:{}'.format(workspace.image_prefix, dockerfile_tag)
-        container_name = 'sysdig-probe-builder-{}'.format(dockerfile_tag)
+        #container_name = 'sysdig-probe-builder-{}'.format(dockerfile_tag)
+        container_name = ''
 
         self.build_kernel_impl(config_hash, container_name, image_name, kernel_dir, probe, release, workspace, False,
                                kmod_skip_reason)
