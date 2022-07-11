@@ -90,6 +90,7 @@ CLI_DISTROS = {
     'CustomDebian': LocalDistro('custom-debian', 'debian'),
     'CustomUbuntu': LocalDistro('custom-ubuntu', 'ubuntu'),
     'CustomFlatcar': LocalDistro('custom-flatcar', 'flatcar'),
+    'CustomFedora': LocalDistro('custom-fedora', 'centos'),
 }
 
 

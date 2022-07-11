@@ -17,6 +17,7 @@ class Distro(namedtuple('Distro', 'distro builder_distro')):
 DISTRO_BUILDERS = {
     'centos': CentosBuilder,
     'debian': DebianBuilder,
+    'fedora': CentosBuilder,
     'flatcar': FlatcarBuilder,
     'ubuntu': UbuntuBuilder,
     'oracle': CentosBuilder,
