@@ -1,5 +1,7 @@
 FROM fedora:31
 
+ADD https://github.com/multiarch/qemu-user-static/releases/download/v7.0.0-7/qemu-s390x-static /usr/bin/qemu-s390x-static
+
 RUN yum -y install \
 	wget \
 	git \
@@ -15,7 +17,6 @@ RUN yum -y install \
 	kmod \
 	clang \
 	llvm \
-	qemu-user-static \
 	python-lxml && yum clean all
 
 ADD builder-entrypoint.sh /
