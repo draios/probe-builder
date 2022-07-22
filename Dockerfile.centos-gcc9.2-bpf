@@ -1,6 +1,6 @@
 FROM fedora:31
 
-ADD https://github.com/multiarch/qemu-user-static/releases/download/v7.0.0-7/qemu-s390x-static /usr/bin/qemu-s390x-static
+ADD --chmod=755 https://github.com/multiarch/qemu-user-static/releases/download/v7.0.0-7/qemu-s390x-static /usr/bin/qemu-s390x-static
 
 RUN yum -y install \
 	wget \
