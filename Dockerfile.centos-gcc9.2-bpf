@@ -15,6 +15,7 @@ RUN yum -y install \
 	kmod \
 	clang \
 	llvm \
+	qemu-user-static \
 	python-lxml && yum clean all
 
 ADD builder-entrypoint.sh /
