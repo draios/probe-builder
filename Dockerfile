@@ -17,10 +17,11 @@ RUN apk add \
 	sfdisk \
 	wget \
 	docker-cli-buildx \
-	qemu-user-static \
+	qemu-s390x \
     docker
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
+RUN cp -f /usr/bin/qemu-s390x /usr/bin/qemu-s390x-static
 
 ADD . /builder
 WORKDIR /builder
