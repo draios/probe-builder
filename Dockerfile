@@ -17,6 +17,7 @@ RUN apk add \
 	sfdisk \
 	wget \
 	docker-cli-buildx \
+	qemu-user-static \
     docker
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
