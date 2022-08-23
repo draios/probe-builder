@@ -1,10 +1,10 @@
-FROM ubuntu:impish
+FROM ubuntu:jammy
 
-RUN echo 'deb http://archive.ubuntu.com/ubuntu/ impish-proposed restricted main multiverse universe' > /etc/apt/sources.list.d/ubuntu-proposed.list && \
+RUN echo 'deb http://archive.ubuntu.com/ubuntu/ jammy-proposed restricted main multiverse universe' > /etc/apt/sources.list.d/ubuntu-proposed.list && \
 	apt-get update && \
 	apt-get -y --no-install-recommends install \
 		cmake \
-		g++ \
+		g++-11 \
 		git \
 		kmod \
 		libc6-dev \
@@ -14,6 +14,9 @@ RUN echo 'deb http://archive.ubuntu.com/ubuntu/ impish-proposed restricted main 
 		clang \
 		llvm \
 		&& apt-get clean
+
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11
 
 ADD builder-entrypoint.sh /
 WORKDIR /build/probe
