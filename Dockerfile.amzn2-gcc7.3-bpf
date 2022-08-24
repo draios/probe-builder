@@ -5,6 +5,7 @@ RUN yum -y install \
 	git \
 	gcc \
 	gcc-c++ \
+	gcc10 \
 	autoconf \
 	bison \
 	flex \
