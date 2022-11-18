@@ -737,14 +737,14 @@ if ! hash curl > /dev/null 2>&1; then
 	exit 1
 fi
 
-if [[ -v SYSDIG_FORCE_BUILD_PROBE ]] && [[ -v SYSDIG_FORCE_DOWNLOAD_PROBE ]] ; then
+if [[ ${SYSDIG_FORCE_BUILD_PROBE} ]] && [[ ${SYSDIG_FORCE_DOWNLOAD_PROBE} ]] ; then
 	echo "Cannot define SYSDIG_FORCE_BUILD_PROBE and SYSDIG_FORCE_DOWNLOAD_PROBE simultaneously."
 	echo "Cannot load the probe"
 	exit 1
 fi
 
 # Loads the probe
-if [[ -v SYSDIG_BPF_PROBE ]] || [ "${1}" = "bpf" ]; then
+if [[ ${SYSDIG_BPF_PROBE} ]] || [ "${1}" = "bpf" ]; then
 	load_bpf_probe
 else
 	load_kernel_probe
