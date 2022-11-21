@@ -360,7 +360,7 @@ load_kernel_probe() {
 	fi
 
 	# Forces probe download, skips build
-	if [ -v SYSDIG_FORCE_DOWNLOAD_PROBE ]; then
+	if [[ ${SYSDIG_FORCE_DOWNLOAD_PROBE} ]]; then
 		echo "* Skipping build, FORCE_DOWNLOAD_PROBE is enabled"
 	else
 		# Builds the probe via dkms; skips UEK hosts, the build will always fail
@@ -392,7 +392,7 @@ load_kernel_probe() {
 	fi
 
 	# Skip download, the probe build has failed
-	if [ -v SYSDIG_FORCE_BUILD_PROBE ]; then
+	if [[ ${SYSDIG_FORCE_BUILD_PROBE} ]]; then
 		echo "* Skipping download, FORCE_BUILD_PROBE is enabled"
 		return 1;
 	fi;
@@ -631,7 +631,7 @@ load_bpf_probe() {
 	fi
 
 	# Forces probe download, skips build
-	if [ -v SYSDIG_FORCE_DOWNLOAD_PROBE ]; then
+	if [[ ${SYSDIG_FORCE_DOWNLOAD_PROBE} ]]; then
 		echo "* Skipping build, FORCE_DOWNLOAD_PROBE is enabled"
 	else
 		# Builds the bpf probe
@@ -644,14 +644,14 @@ load_bpf_probe() {
 	fi
 
 	# Skip download
-	if [ -v SYSDIG_FORCE_BUILD_PROBE ]; then
+	if [ ${SYSDIG_FORCE_BUILD_PROBE} ]; then
 		echo "* Skipping download, FORCE_BUILD_PROBE is enabled"
 		make_symlink_bpf_probe
 		return $?;
 	fi;
 
 	# Prevents installing a leftover probe
-	if [ -v SYSDIG_FORCE_DOWNLOAD_PROBE ] && [ -f "${HOME}/.sysdig/${BPF_PROBE_FILENAME}" ]; then
+	if [[ ${SYSDIG_FORCE_DOWNLOAD_PROBE} ]] && [ -f "${HOME}/.sysdig/${BPF_PROBE_FILENAME}" ]; then
 		rm ${HOME}/.sysdig/${BPF_PROBE_FILENAME}
 		if [ ! -f "${HOME}/.sysdig/${BPF_PROBE_FILENAME}" ]; then
 			echo "* Removed existing bpf probe ${HOME}/.sysdig/${BPF_PROBE_FILENAME}"
