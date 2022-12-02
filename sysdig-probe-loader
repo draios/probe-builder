@@ -217,7 +217,7 @@ remove_kernel_probe() {
 
 #
 # Evaluates variables override.
-# Returns 1 on success, 0 otherwise.
+# Returns 0 on success, 1 otherwise.
 #
 get_variable_override_kernel_probe() {
 	echo "* Evaluating override of environment variables"
@@ -460,7 +460,7 @@ download_bpf_probe() {
 
 #
 # Evaluates variables override.
-# Returns 1 on success, 0 otherwise.
+# Returns 0 on success, 1 otherwise.
 #
 get_variable_override_bpf_probe() {
 	echo "* Evaluating override of environment variables"
