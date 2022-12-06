@@ -246,10 +246,24 @@ get_variable_override_kernel_probe() {
 #
 load_precompiled_kernel_probe() {
 	echo "* Loading module"
-	insmod_out=$(insmod "${HOME}/.sysdig/${SYSDIG_PROBE_FILENAME}")
-	if [ $? -ne 0 ]; then
-		echo "Cannot insmod, error $insmod_out"
-		return 1
+	insmod_out1=$(insmod "${HOME}/.sysdig/${SYSDIG_PROBE_FILENAME}" 2>&1)
+	exit_status1=$?
+	if [ $exit_status1 -ne 0 ]; then
+		# Fedora 35+ distros on some cloud variants like AWS will
+		# carry some default SELinux policy preventing it from
+		# loading a .ko from a file descriptor through finit_module()
+		# (which is what insmod does).
+		# Compressing it with .xz forces insmod to decompress it into memory first,
+		# and load it through init_module() instead, circumventing the issue.
+		echo "* Loading module (xz)"
+		xz -zkf "${HOME}/.sysdig/${SYSDIG_PROBE_FILENAME}"
+		insmod_out2=$(insmod "${HOME}/.sysdig/${SYSDIG_PROBE_FILENAME}.xz" 2>&1)
+		exit_status2=$?
+		if [ $exit_status2 -ne 0 ]; then
+			echo "Cannot insmod, exit status $exit_status1, error: $insmod_out1"
+			echo "Cannot insmod even after xz, exit status $exit_status1, error: $insmod_out2"
+			return 1
+		fi
 	fi
 	return 0
 }
