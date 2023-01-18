@@ -20,12 +20,12 @@ def pipe(cmd, silence_errors=False, cwd=None):
         logger.warn('{} returned error code {}'.format(cmd_string, child.returncode))
         for line in stdout.splitlines(False):
             logger.warn(make_string(line))
-        raise subprocess.CalledProcessError(child.returncode, cmd_string)
+        raise subprocess.CalledProcessError(child.returncode, cmd_string, stdout)
     else:
         lines = stdout.splitlines(False)
         for line in lines:
             logger.debug(make_string(line))
-        return lines
+        return make_string(stdout)
 
 
 def json_pipe(cmd, silence_errors=False, cwd=None):

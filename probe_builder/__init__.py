@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import traceback
 
 import click
 
@@ -137,8 +138,53 @@ def build(builder_image_prefix,
             future = executor.submit(distro_builder.build_kernel, workspace, probe, distro.builder_distro, release, target)
             kernels_futures.append((release, future))
 
+
+    print("List of analyzed kernels:")
+    fstr = "|{:<45}|{:<10}|{:<10}|"
+    l = fstr.format("Kernel", "kmod", "ebpf")
+    print("-" * len(l))
+    print(l)
+    print("-" * len(l))
+
+    failed = 0
     for release, future in kernels_futures:
-        print("Release: {}, Result: {}".format(release, future.result()))
+        try:
+            res = future.result()
+            if res.kmod_result.failed() or res.ebpf_result.failed():
+                failed += 1
+            print(fstr.format(release,
+                res.kmod_result.build_result_string(),
+                res.ebpf_result.build_result_string()))
+        except:
+            failed += 1
+            print(fstr.format(release, "EXCEPTION", "EXCEPTION"))
+
+    print("-" * len(l))
+    print("Number of kernels analyzed: {}".format(len(kernels_futures)))
+    print("")
+
+    if failed:
+        print("List of failed kernels:")
+        print("-" * len(l))
+        print(l)
+        print("-" * len(l))
+
+        for release, future in kernels_futures:
+            try:
+                res = future.result()
+                if res.kmod_result.failed() or res.ebpf_result.failed():
+                    print(fstr.format(release,
+                        res.kmod_result.build_result_string(),
+                        res.ebpf_result.build_result_string()))
+            except:
+                print(fstr.format(release, "EXCEPTION", "EXCEPTION"))
+                traceback.print_exc()
+
+        print("-" * len(l))
+        print("Number of failed kernels: {}".format(failed))
+        print("")
+
+    sys.exit(1 if failed else 0)
 
 
 @click.command()
