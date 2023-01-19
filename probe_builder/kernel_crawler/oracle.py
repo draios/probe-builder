@@ -53,3 +53,17 @@ class Oracle8Mirror(repo.Distro):
 
     def list_repos(self):
         return [OracleRepository(url) for url in self.OL8_REPOS]
+
+
+class Oracle9Mirror(repo.Distro):
+    OL9_REPOS = [
+        'http://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/',
+        'http://yum.oracle.com/repo/OracleLinux/OL9/appstream/x86_64/',
+        'http://yum.oracle.com/repo/OracleLinux/OL9/UEKR7/x86_64/',
+    ]
+
+    def __init__(self):
+        super(Oracle9Mirror, self).__init__([])
+
+    def list_repos(self):
+        return [OracleRepository(url) for url in self.OL9_REPOS]
