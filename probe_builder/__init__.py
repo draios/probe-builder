@@ -74,6 +74,7 @@ class LocalDistro(object):
 
 
 CLI_DISTROS = {
+    'AlmaLinux': CrawlDistro('almalinux', 'centos', 'AlmaLinux'),
     'AmazonLinux': CrawlDistro('amazonlinux', 'centos', 'AmazonLinux'),
     'AmazonLinux2': CrawlDistro('amazonlinux2', 'centos', 'AmazonLinux2'),
     'AmazonLinux2022': CrawlDistro('amazonlinux2022', 'centos', 'AmazonLinux2022'),
@@ -85,6 +86,7 @@ CLI_DISTROS = {
     'Oracle7': CrawlDistro('oracle7', 'oracle', 'Oracle7'),
     'Oracle8': CrawlDistro('oracle8', 'oracle', 'Oracle8'),
     'Oracle9': CrawlDistro('oracle9', 'oracle', 'Oracle9'),
+    'RockyLinux': CrawlDistro('rockylinux', 'centos', 'RockyLinux'),
     'Ubuntu': CrawlDistro('ubuntu', 'ubuntu', 'Ubuntu'),
     'PhotonOS': CrawlDistro('photonos', 'photonos', 'PhotonOS'),
     'CustomCentOS': LocalDistro('custom-centos', 'centos'),
