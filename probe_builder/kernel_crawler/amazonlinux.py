@@ -33,7 +33,7 @@ class AmazonLinux1Mirror(repo.Distro):
     def __init__(self):
         super(AmazonLinux1Mirror, self).__init__([])
 
-    def list_repos(self):
+    def list_repos(self, crawler_filter):
         repo_urls = set()
         with click.progressbar(
                 self.AL1_REPOS, label='Checking repositories', file=sys.stderr, item_show_func=repo.to_s) as repos:
@@ -53,7 +53,7 @@ class AmazonLinux2Mirror(repo.Distro):
     def __init__(self):
         super(AmazonLinux2Mirror, self).__init__([])
 
-    def list_repos(self):
+    def list_repos(self, crawler_filter):
         repo_urls = set()
         with click.progressbar(
                 self.AL2_REPOS, label='Checking repositories', file=sys.stderr, item_show_func=repo.to_s) as repos:
@@ -81,7 +81,7 @@ class AmazonLinux2022Mirror(repo.Distro):
     def __init__(self):
         super(AmazonLinux2022Mirror, self).__init__([])
 
-    def list_repos(self):
+    def list_repos(self, crawler_filter):
         # List of all available releases
         releasemd_url = "{}/{}".format(self.AL2022_BASE_URL, "core/releasemd.xml")
         releasemd_xml = get_url(releasemd_url)
