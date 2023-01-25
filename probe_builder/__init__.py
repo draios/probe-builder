@@ -61,8 +61,8 @@ class CrawlDistro(object):
         self.distro_builder = self.distro_obj.builder()
         self.crawler_distro = crawler_distro
 
-    def get_kernels(self, workspace, _packages, download_config, distro_filter, kernel_filter):
-        return self.distro_builder.crawl(workspace, self.distro_obj, self.crawler_distro, download_config, distro_filter, kernel_filter)
+    def get_kernels(self, workspace, _packages, download_config, crawler_filter):
+        return self.distro_builder.crawl(workspace, self.distro_obj, self.crawler_distro, download_config, crawler_filter)
 
 class LocalDistro(object):
 
@@ -70,7 +70,7 @@ class LocalDistro(object):
         self.distro_obj = Distro(distro, builder_distro)
         self.distro_builder = self.distro_obj.builder()
 
-    def get_kernels(self, _workspace, packages, _download_config, _distro_filter, _kernel_filter):
+    def get_kernels(self, _workspace, packages, _download_config, _crawler_filter):
         return self.distro_builder.batch_packages(packages)
 
 
@@ -132,7 +132,9 @@ def build(builder_image_prefix,
     distro = distro_obj.distro_obj
     download_config = DownloadConfig(download_concurrency, download_timeout, retries, None)
 
-    kernels = distro_obj.get_kernels(workspace, package, download_config, distro_filter, kernel_filter)
+    crawler_filter = kernel_crawler.repo.CrawlerFilter(distro_filter=distro_filter, kernel_filter=kernel_filter)
+
+    kernels = distro_obj.get_kernels(workspace, package, download_config, crawler_filter)
     kernel_dirs = distro_builder.unpack_kernels(workspace, distro.distro, kernels)
 
     with ThreadPoolExecutor(max_workers=jobs) as executor:
@@ -193,9 +195,10 @@ def build(builder_image_prefix,
 @click.command()
 @click.argument('distro', type=click.Choice(sorted(DISTROS.keys())))
 @click.argument('distro_filter', required=False, default='')
-@click.argument('version', required=False, default='')
-def crawl(distro, distro_filter='', version=''):
-    kernels = crawl_kernels(distro, distro_filter, version)
+@click.argument('kernel_filter', required=False, default='')
+def crawl(distro, distro_filter='', kernel_filter=''):
+    crawler_filter = kernel_crawler.repo.CrawlerFilter(distro_filter=distro_filter, kernel_filter=kernel_filter)
+    kernels = crawl_kernels(distro, distro_filter, crawler_filter=crawler_filter)
     for release, packages in kernels.items():
         print('=== {} ==='.format(release))
         for pkg in packages:

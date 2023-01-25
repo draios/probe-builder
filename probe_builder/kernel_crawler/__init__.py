@@ -32,10 +32,6 @@ DISTROS = {
     'Flatcar': FlatcarMirror,
 }
 
-
-def crawl_kernels(distro, distro_filter='', kernel_filter=''):
-    dist = DISTROS[distro]()
-    dist.set_distro_filter(distro_filter)
-    pt = dist.get_package_tree(kernel_filter)
-    dist.set_distro_filter('')
-    return pt
+def crawl_kernels(distro, crawler_filter):
+    dist = DISTROS[distro]
+    return dist().get_package_tree(crawler_filter)

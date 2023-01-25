@@ -8,6 +8,7 @@ import click
 
 from probe_builder.builder import toolkit
 from probe_builder.builder.distro.base_builder import DistroBuilder
+from probe_builder.kernel_crawler.repo import EMPTY_FILTER
 
 logger = logging.getLogger(__name__)
 pp = pprint.PrettyPrinter(depth=4)
@@ -17,14 +18,14 @@ class DebianBuilder(DistroBuilder):
     KBUILD_PACKAGE_RE = re.compile(r'linux-kbuild-(?P<major>[0-9]\.[0-9]+)_')
 
 
-    def crawl(self, workspace, distro, crawler_distro, download_config=None, distro_filter='', kernel_filter=''):
+    def crawl(self, workspace, distro, crawler_distro, download_config=None, crawler_filter=EMPTY_FILTER):
         # for debian, we essentially want to discard the classification work performed by the crawler,
         # and batch packages together
 
         # call the parent's method
         crawled_dict = super().crawl(workspace=workspace, distro=distro,
             crawler_distro=crawler_distro, download_config=download_config,
-            distro_filter=distro_filter, kernel_filter=kernel_filter)
+            crawler_filter=crawler_filter)
 
         # flatten that dictionary into a single list, retaining ONLY package urls and discarding the release altogether
         flattened_packages = [pkg for pkgs in crawled_dict.values() for pkg in pkgs]

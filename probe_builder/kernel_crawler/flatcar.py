@@ -41,7 +41,7 @@ class FlatcarMirror(Distro):
                 and '-' not in dist
                 ]
 
-    def list_repos(self):
+    def list_repos(self, crawler_filter):
         repos = []
         for repo in self.mirrors:
             repos.extend(self.scan_repo(repo))

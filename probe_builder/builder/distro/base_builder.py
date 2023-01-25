@@ -9,6 +9,7 @@ import click
 from probe_builder import docker
 from probe_builder.builder import builder_image, choose_builder
 from probe_builder.kernel_crawler import crawl_kernels
+from probe_builder.kernel_crawler.repo import EMPTY_FILTER
 from probe_builder.kernel_crawler.download import download_batch
 from probe_builder.py23 import make_bytes, make_string
 
@@ -147,8 +148,8 @@ class DistroBuilder(object):
     def batch_packages(self, kernel_files):
         raise NotImplementedError
 
-    def crawl(self, workspace, distro, crawler_distro, download_config=None, distro_filter='', kernel_filter=''):
-        kernels = crawl_kernels(crawler_distro, distro_filter, kernel_filter)
+    def crawl(self, workspace, distro, crawler_distro, download_config=None, crawler_filter=EMPTY_FILTER):
+        kernels = crawl_kernels(crawler_distro, crawler_filter)
         try:
             os.makedirs(workspace.subdir(distro.distro))
         except OSError as exc:

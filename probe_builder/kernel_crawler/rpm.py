@@ -113,7 +113,7 @@ class RpmMirror(repo.Mirror):
             return False
         return True
 
-    def list_repos(self):
+    def list_repos(self, crawler_filter):
         dists = requests.get(self.base_url)
         dists.raise_for_status()
         dists = dists.content
@@ -127,9 +127,9 @@ class RpmMirror(repo.Mirror):
                 and not dist.startswith('http')
                 and self.repo_filter(dist)
                 and self.dist_exists(dist)
-                and dist.startswith(self.distro_filter)
+                and dist.startswith(crawler_filter.distro_filter)
                 ]
 
 
-        logger.info("Dists found under {}, filtered by '{}': {}".format(self.base_url, self.distro_filter, fdists))
+        logger.info("Dists found under {}, filtered by '{}': {}".format(self.base_url, crawler_filter.distro_filter, fdists))
         return [RpmRepository(self.dist_url(dist)) for dist in fdists]
