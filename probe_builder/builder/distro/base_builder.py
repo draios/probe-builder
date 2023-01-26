@@ -50,6 +50,9 @@ class DistroBuilder(object):
             self.kmod_result = kmod_result
             self.ebpf_result = ebpf_result
 
+        def failed(self):
+            return self.kmod_result.failed() or self.ebpf_result.failed()
+
     @staticmethod
     def md5sum(path):
         from hashlib import md5

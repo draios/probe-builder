@@ -150,7 +150,7 @@ def build(builder_image_prefix,
     for release, future in kernels_futures:
         try:
             res = future.result()
-            if res.kmod_result.failed() or res.ebpf_result.failed():
+            if res.failed():
                 failed += 1
             print(fstr.format(release,
                 res.kmod_result.build_result_string(),
@@ -172,7 +172,7 @@ def build(builder_image_prefix,
         for release, future in kernels_futures:
             try:
                 res = future.result()
-                if res.kmod_result.failed() or res.ebpf_result.failed():
+                if res.failed():
                     print(fstr.format(release,
                         res.kmod_result.build_result_string(),
                         res.ebpf_result.build_result_string()))
