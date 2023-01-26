@@ -73,7 +73,7 @@ class RpmRepository(repo.Repository):
         pkglist_url = self.get_loc_by_xpath(repomd, '//repo:repomd/repo:data[@type="primary_db"]/repo:location/@href')
         return self.base_url + pkglist_url
 
-    def get_package_tree(self, kernel_filter=''):
+    def get_package_tree(self, crawler_filter):
         packages = {}
         try:
             repodb_url = self.get_repodb_url()
@@ -84,7 +84,7 @@ class RpmRepository(repo.Repository):
         with tempfile.NamedTemporaryFile() as tf:
             tf.write(repodb)
             tf.flush()
-            for pkg in self.parse_repo_db(tf.name, kernel_filter):
+            for pkg in self.parse_repo_db(tf.name, crawler_filter.kernel_filter):
                 version, url = pkg
                 packages.setdefault(version, set()).add(self.base_url + url)
         return packages
