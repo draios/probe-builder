@@ -1,13 +1,11 @@
 from __future__ import print_function
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from collections import namedtuple
 import click
 import sys
 
-class CrawlerFilter(object):
-    def __init__(self, distro_filter='', kernel_filter=''):
-        self.distro_filter = distro_filter
-        self.kernel_filter = kernel_filter
+CrawlerFilter = namedtuple("CrawlerFilter", ["distro_filter", "kernel_filter"], defaults=["",""])
 
 EMPTY_FILTER=CrawlerFilter()
 
