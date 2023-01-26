@@ -70,15 +70,17 @@ class DebianBuilder(DistroBuilder):
             self._reparent_link(base_path, release, 'source')
 
             makefile = os.path.join(kerneldir, 'Makefile')
-            makefile_orig = makefile + '.sysdig-orig'
+            # we're no longer using the `Makefile.sysdig-orig` guard file
+            # since it might happen that a newer package version for the same kernel
+            # will overwrite such Makefile (while keeping the existing Makefile.sysdig-orig)
+            # So we just read it and patch it only if needed
             target_in_container = target.replace(workspace.workspace, '/build/probe')
-            if not os.path.exists(makefile_orig):
-                with open(makefile) as fp:
-                    orig = fp.read()
-                with open(makefile_orig, 'w') as fp:
-                    fp.write(orig)
-                patched = orig.replace('/usr/src', os.path.join(target_in_container, 'usr/src'))
+            with open(makefile) as fp:
+                orig = fp.read()
+            patched = orig.replace('include /usr/src', 'include ' + os.path.join(target_in_container, 'usr/src'))
+            if patched != orig:
                 with open(makefile, 'w') as fp:
+                    fp.write("# patched by sysdig-probe-builder\n")
                     fp.write(patched)
 
         return kernel_dirs
