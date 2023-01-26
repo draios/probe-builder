@@ -10,9 +10,9 @@ class FlatcarRepository(Repository):
     def __init__(self, base_url):
         self.base_url = base_url
 
-    def get_package_tree(self, kernel_filter=''):
+    def get_package_tree(self, crawler_filter):
         release = os.path.basename(self.base_url.rstrip('/'))
-        if version not in release:
+        if crawler_filter.kernel_filter not in release:
             return {}
         dev_container = os.path.join(self.base_url, 'flatcar_developer_container.bin.bz2')
         return {release: [dev_container]}
