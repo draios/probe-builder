@@ -10,7 +10,7 @@ class FlatcarRepository(Repository):
     def __init__(self, base_url):
         self.base_url = base_url
 
-    def get_package_tree(self, version=''):
+    def get_package_tree(self, crawler_filter):
         release = os.path.basename(self.base_url.rstrip('/'))
         if version not in release:
             return {}
@@ -41,7 +41,7 @@ class FlatcarMirror(Distro):
                 and '-' not in dist
                 ]
 
-    def list_repos(self):
+    def list_repos(self, crawler_filter):
         repos = []
         for repo in self.mirrors:
             repos.extend(self.scan_repo(repo))

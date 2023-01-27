@@ -31,7 +31,7 @@ class PhotonOsMirror(repo.Distro):
     def __init__(self):
         super(PhotonOsMirror, self).__init__([])
 
-    def list_repos(self):
+    def list_repos(self, crawler_filter):
         return [
             PhotonOsRepository('https://packages.vmware.com/photon/{v}/photon{r}_{v}_x86_64/'.format(
                 v=version, r=repo_tag))

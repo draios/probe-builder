@@ -1,4 +1,5 @@
 from probe_builder.builder import toolkit
+from probe_builder.kernel_crawler.repo import EMPTY_FILTER
 from .centos import CentosBuilder
 
 
@@ -10,14 +11,14 @@ class PhotonosBuilder(CentosBuilder):
             return release[: -len(".x86_64")]
         return release
 
-    def crawl(self, workspace, distro, crawler_distro, download_config=None, filter=""):
+    def crawl(self, workspace, distro, crawler_distro, download_config=None, crawler_filter=EMPTY_FILTER):
         # call the parent's method
         orig = super().crawl(
             workspace=workspace,
             distro=distro,
             crawler_distro=crawler_distro,
             download_config=download_config,
-            filter=filter,
+            crawler_filter=crawler_filter,
         )
         # make up a new list with stripped release version
         renamed = {}

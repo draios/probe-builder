@@ -20,16 +20,16 @@ class DebianMirror(repo.Distro):
     # can be resolved (i.e. build_package_tree) across multiple repositories.
     # This is namely required for the linux-kbuild package, which is typically
     # hosted on a different repository compared to the kernel packages
-    def get_package_tree(self, version=''):
+    def get_package_tree(self, crawler_filter):
         all_packages = {}
         all_kernel_packages = []
         packages = {}
-        repos = self.list_repos()
+        repos = self.list_repos(crawler_filter)
         with click.progressbar(repos, label='Listing packages', file=sys.stderr, item_show_func=repo.to_s) as repos:
             for repository in repos:
                 repo_packages = repository.get_raw_package_db()
                 all_packages.update(repo_packages)
-                kernel_packages = repository.get_package_list(repo_packages, version)
+                kernel_packages = repository.get_package_list(repo_packages, crawler_filter.kernel_filter)
                 all_kernel_packages.extend(kernel_packages)
 
         for release, dependencies in deb.DebRepository.build_package_tree(all_packages, all_kernel_packages).items():

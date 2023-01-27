@@ -12,6 +12,7 @@ import requests
 from lxml import html
 
 from . import repo
+from probe_builder.kernel_crawler.repo import EMPTY_FILTER
 from probe_builder.kernel_crawler.download import get_first_of, get_url
 from probe_builder.py23 import make_bytes, make_string
 import pprint
@@ -192,7 +193,8 @@ class DebRepository(repo.Repository):
         #           'http://security.ubuntu.com/ubuntu/pool/main/l/linux-signed-azure/linux-image-5.15.0-1001-azure_5.15.0-1001.2_amd64.deb'},
 
         deps = {}
-        logger.debug("packages=\n{}".format(pp.pformat(packages)))
+        # that's really really too much
+        #logger.debug("packages=\n{}".format(pp.pformat(packages)))
         logger.debug("package_list=\n{}".format(pp.pformat(package_list)))
         with click.progressbar(package_list, label='Building dependency tree', file=sys.stderr,
                                item_show_func=repo.to_s) as pkgs:
@@ -219,9 +221,9 @@ class DebRepository(repo.Repository):
         logger.debug("after pruning, deps=\n{}".format(pp.pformat(deps)))
         return deps
 
-    def get_package_tree(self, filter=''):
+    def get_package_tree(self, crawler_filter=EMPTY_FILTER):
         packages = self.get_raw_package_db()
-        package_list = self.get_package_list(packages, filter)
+        package_list = self.get_package_list(packages, crawler_filter.kernel_filter)
         return self.build_package_tree(packages, package_list)
 
 
@@ -254,7 +256,7 @@ class DebMirror(repo.Mirror):
             repos[url] = DebRepository(self.base_url, url)
         return repos
 
-    def list_repos(self):
+    def list_repos(self, crawler_filter):
         dists_url = self.base_url + 'dists/'
         dists = requests.get(dists_url)
         dists.raise_for_status()
@@ -266,8 +268,10 @@ class DebMirror(repo.Mirror):
                  and not dist.startswith('?')
                  and not dist.startswith('http')
                  and self.repo_filter(dist)
+                 and dist.startswith(crawler_filter.distro_filter)
                  ]
 
+        logger.info("Dists found under {}, filtered by '{}': {}".format(dists_url, crawler_filter.distro_filter, dists))
         repos = {}
         with click.progressbar(
                 dists, label='Scanning {}'.format(self.base_url), file=sys.stderr, item_show_func=repo.to_s) as dists:
