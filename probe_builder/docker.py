@@ -94,4 +94,4 @@ def is_privileged():
 def remove_dangling_images():
     images = pipe(['docker', 'images', '-q', '-f', 'dangling=true'])
     if images:
-        pipe(['docker', 'rmi'] + images, silence_errors=True)
+        pipe(['docker', 'rmi'] + images.splitlines(False), silence_errors=True)
