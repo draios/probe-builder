@@ -25,7 +25,7 @@ def pipe(cmd, silence_errors=False, cwd=None):
         lines = stdout.splitlines(False)
         for line in lines:
             logger.debug(make_string(line))
-        return make_string(stdout)
+        return stdout
 
 
 def json_pipe(cmd, silence_errors=False, cwd=None):

@@ -28,7 +28,7 @@ class DistroBuilder(object):
         BUILD_EXISTING=1
         BUILD_SKIPPED=2
         BUILD_FAILED=3
-        def __init__(self, build_result, build_time=0, error_log=[]):
+        def __init__(self, build_result, build_time=0, error_log=b''):
             self.build_time = build_time
             self.build_result = build_result
             self.error_log = error_log
