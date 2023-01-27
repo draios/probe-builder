@@ -73,6 +73,7 @@ def probe_output_file(probe, kernel_release, config_hash, bpf):
 
 SKIPPED_KERNELS = [
     ("4.15.0-29-generic", "ea0aa038a6b9bdc4bb42152682bba6ce"),
+    ("4.9.0-4-grsec-amd64", "1ff376e85cab19e75e0ef64d837af78d"),
     ("5.8.0-1023-aws", "3f7746be1bef4c3f68f5465d8453fa4d"),
 ]
 
