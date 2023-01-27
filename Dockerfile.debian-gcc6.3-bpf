@@ -14,7 +14,7 @@ RUN apt-get update && apt-get -y --no-install-recommends install \
 	&& apt-get clean
 
 # Enforce usage of clang 7, which is more recent
-# than the standard 3.8.1-24 that comes with strecth
+# than the standard 3.8.1-24 that comes with stretch
 # and might raise
 # clang: error: unknown argument: '-fno-jump-tables'
 ENV CLANG clang-7
