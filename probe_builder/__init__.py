@@ -127,6 +127,8 @@ def build(builder_image_prefix,
     workspace = Workspace(docker.is_privileged(), docker.get_mount_mapping(), workspace_dir, builder_source, builder_image_prefix)
     probe = get_probe(workspace, source_dir, probe_name, probe_version)
     distro_obj = CLI_DISTROS[kernel_type]
+    #### FIXME Removeme
+    overwrite = True
 
     distro_builder = distro_obj.distro_builder
     distro = distro_obj.distro_obj
