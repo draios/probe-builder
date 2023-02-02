@@ -47,7 +47,7 @@ class FlatcarBuilder(DistroBuilder):
 
     @classmethod
     def build_kernel_impl(cls, config_hash, container_name, image_name, kernel_dir, probe, release, workspace, bpf,
-                          skip_reason):
+                          skip_reason, overwrite=False):
         if bpf:
             label = 'eBPF'
             args = ['bpf']

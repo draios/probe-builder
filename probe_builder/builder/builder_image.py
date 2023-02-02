@@ -103,8 +103,8 @@ def probe_built(probe, output_dir, kernel_release, config_hash, bpf):
     probe_file_name = probe_output_file(probe, kernel_release, config_hash, bpf)
     return os.path.exists(os.path.join(output_dir, probe_file_name))
 
-def skip_build(probe, output_dir, kernel_release, config_hash, bpf):
-    if probe_built(probe, output_dir, kernel_release, config_hash, bpf):
+def skip_build(probe, output_dir, kernel_release, config_hash, bpf, overwrite=False):
+    if not overwrite and probe_built(probe, output_dir, kernel_release, config_hash, bpf):
         return "Already built"
 
     if (kernel_release, config_hash) in SKIPPED_KERNELS:

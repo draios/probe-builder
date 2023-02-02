@@ -109,6 +109,7 @@ def cli(debug):
 @click.option('-j', '--jobs', type=click.INT, default=len(os.sched_getaffinity(0)))
 @click.option('-k', '--kernel-type', type=click.Choice(sorted(CLI_DISTROS.keys())))
 @click.option('-f', '--filter', default='')
+@click.option('-o', '--overwrite', is_flag=True)
 @click.option('-p', '--probe-name')
 @click.option('-r', '--retries', type=click.INT, default=1)
 @click.option('-s', '--source-dir')
@@ -116,7 +117,8 @@ def cli(debug):
 @click.option('-v', '--probe-version')
 @click.argument('package', nargs=-1)
 def build(builder_image_prefix,
-          download_concurrency, jobs, kernel_type, filter, probe_name, retries,
+          download_concurrency, jobs, kernel_type, filter, overwrite,
+          probe_name, retries,
           source_dir, download_timeout, probe_version, package):
     workspace_dir = os.getcwd()
     builder_source = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -135,7 +137,7 @@ def build(builder_image_prefix,
     with ThreadPoolExecutor(max_workers=jobs) as executor:
         kernels_futures = []
         for release, target in kernel_dirs:
-            future = executor.submit(distro_builder.build_kernel, workspace, probe, distro.builder_distro, release, target)
+            future = executor.submit(distro_builder.build_kernel, workspace, probe, distro.builder_distro, release, target, overwrite)
             kernels_futures.append((release, future))
 
 
