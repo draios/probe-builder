@@ -11,8 +11,8 @@ RUN echo 'deb http://archive.ubuntu.com/ubuntu/ jammy-proposed restricted main m
 		libelf-dev \
 		make \
 		pkg-config \
-		clang \
-		llvm \
+		clang-14 \
+		llvm-14 \
 		&& apt-get clean
 
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11 && \
