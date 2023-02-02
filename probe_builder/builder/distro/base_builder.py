@@ -73,7 +73,7 @@ class DistroBuilder(object):
 
     @classmethod
     def build_kernel_impl(cls, config_hash, container_name, image_name, kernel_dir, probe, release, workspace, bpf,
-                          skip_reason):
+                          skip_reason, overwrite=False):
         if bpf:
             label = 'eBPF'
             args = ['bpf']
@@ -82,7 +82,7 @@ class DistroBuilder(object):
             args = []
 
         output_dir = workspace.subdir('output')
-        if builder_image.probe_built(probe, output_dir, release, config_hash, bpf):
+        if not overwrite and builder_image.probe_built(probe, output_dir, release, config_hash, bpf):
             return cls.ProbeBuildResult(cls.ProbeBuildResult.BUILD_EXISTING, 0)
 
         if skip_reason:
@@ -108,12 +108,12 @@ class DistroBuilder(object):
                     logger.warn(make_string(line))
                 return cls.ProbeBuildResult(cls.ProbeBuildResult.BUILD_FAILED, took, stdout)
 
-    def build_kernel(self, workspace, probe, builder_distro, release, target):
+    def build_kernel(self, workspace, probe, builder_distro, release, target, overwrite=False):
         config_hash = self.hash_config(release, target)
         output_dir = workspace.subdir('output')
 
-        kmod_skip_reason = builder_image.skip_build(probe, output_dir, release, config_hash, False)
-        ebpf_skip_reason = builder_image.skip_build(probe, output_dir, release, config_hash, True)
+        kmod_skip_reason = builder_image.skip_build(probe, output_dir, release, config_hash, False, overwrite)
+        ebpf_skip_reason = builder_image.skip_build(probe, output_dir, release, config_hash, True, overwrite)
         try:
             os.makedirs(output_dir, 0o755)
         except OSError as exc:
@@ -140,9 +140,9 @@ class DistroBuilder(object):
 
         return self.KernelBuildResult(
             self.build_kernel_impl(config_hash, container_name, image_name, kernel_dir, probe, release, workspace, False,
-                                kmod_skip_reason),
+                                kmod_skip_reason, overwrite),
             self.build_kernel_impl(config_hash, container_name, image_name, kernel_dir, probe, release, workspace, True,
-                                ebpf_skip_reason),
+                                ebpf_skip_reason, overwrite),
         )
 
     def batch_packages(self, kernel_files):

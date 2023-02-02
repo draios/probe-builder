@@ -110,6 +110,7 @@ def cli(debug):
 @click.option('-k', '--kernel-type', type=click.Choice(sorted(CLI_DISTROS.keys())))
 @click.option('-R', '--distro-filter', default='')
 @click.option('-f', '--kernel-filter', default='')
+@click.option('-o', '--overwrite', is_flag=True)
 @click.option('-p', '--probe-name')
 @click.option('-r', '--retries', type=click.INT, default=1)
 @click.option('-s', '--source-dir')
@@ -118,7 +119,7 @@ def cli(debug):
 @click.argument('package', nargs=-1)
 def build(builder_image_prefix,
           download_concurrency, jobs, kernel_type, distro_filter,
-          kernel_filter, probe_name, retries,
+          kernel_filter, overwrite, probe_name, retries,
           source_dir, download_timeout, probe_version, package):
     workspace_dir = os.getcwd()
     builder_source = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -139,7 +140,7 @@ def build(builder_image_prefix,
     with ThreadPoolExecutor(max_workers=jobs) as executor:
         kernels_futures = []
         for release, target in kernel_dirs:
-            future = executor.submit(distro_builder.build_kernel, workspace, probe, distro.builder_distro, release, target)
+            future = executor.submit(distro_builder.build_kernel, workspace, probe, distro.builder_distro, release, target, overwrite)
             kernels_futures.append((release, future))
 
 
