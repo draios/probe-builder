@@ -11,9 +11,14 @@ RUN echo 'deb http://archive.ubuntu.com/ubuntu/ kinetic-proposed restricted main
 		libelf-dev \
 		make \
 		pkg-config \
-		clang \
-		llvm \
+		clang-14 \
+		llvm-14 \
 		&& apt-get clean
+
+# Enforce usage of clang 14, since clang 15 seems to
+# raise a lot of verifier issues
+ENV CLANG clang-14
+ENV LLC llc-14
 
 ADD builder-entrypoint.sh /
 WORKDIR /build/probe
