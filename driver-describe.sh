@@ -19,7 +19,7 @@ if [[ -n "$LAST_TAG" ]]; then
     # Check the number of commits which *actually* changed _something_ in driver/
     N_COMMITS=$(git log --oneline ...${LAST_TAG} -- driver/ | wc -l)
     if [[ ${N_COMMITS} -gt 0 ]]; then
-        echo "${LAST_VERSION}+${N_COMMITS}-${LAST_COMMIT}"
+        echo "${LAST_VERSION}-${N_COMMITS}-${LAST_COMMIT}"
     else
         echo "${LAST_VERSION}"
     fi
