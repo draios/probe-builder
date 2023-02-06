@@ -730,7 +730,14 @@ if [ "${SCRIPT_NAME}" = "sysdig-probe-loader" ]; then
 	PACKAGE_NAME="sysdig"
 elif [ "${SCRIPT_NAME}" = "sysdigcloud-probe-loader" ]; then
 	EXEPATH=$(dirname "$(readlink -f "${0}")")
+	# If we were give a SYSDIG_VERSION (which is, indeed, a DRIVER_VERSION), we can just accept it.
+	# Otherwise, we look for one.
 	if [ -z "$SYSDIG_VERSION" ]; then
+		# Look for an explicit driver version requirement, if we have one
+		SYSDIG_VERSION=$(sed -n -e 's/driver version: \(.*\)/\1/p' /opt/draios/etc/.agent_build)
+	fi
+	if [ -z "$SYSDIG_VERSION" ]; then
+		# As a fallback, look for the exact version (this should be the case up to 12.11.0)
 		SYSDIG_VERSION=$("${EXEPATH}"/dragent --version)
 	fi
 	PROBE_NAME="sysdigcloud-probe"
