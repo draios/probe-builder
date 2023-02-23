@@ -1,3 +1,4 @@
+import configparser
 import errno
 import logging
 import os
@@ -61,17 +62,28 @@ class DistroBuilder(object):
             digest.update(fp.read().encode('utf-8'))
         return digest.hexdigest()
 
+    @staticmethod
+    def config_module_sig_hash(path):
+        with open(path, 'r') as f:
+            config_string = '[DEFAULT]\n' + f.read()
+        config = configparser.ConfigParser()
+        config.read_string(config_string)
+        return config['DEFAULT']['CONFIG_MODULE_SIG_HASH'].replace('"','')
+
     def unpack_kernels(self, workspace, distro, kernels):
         raise NotImplementedError
 
     def hash_config(self, release, target):
         raise NotImplementedError
 
+    def sign_file_hash_algo(self, release, target):
+        raise NotImplementedError
+
     def get_kernel_dir(self, workspace, release, target):
         raise NotImplementedError
 
     @classmethod
-    def build_kernel_impl(cls, config_hash, container_name, image_name, kernel_dir, probe, release, workspace, bpf,
+    def build_kernel_impl(cls, config_hash, sign_file_hash_algo, container_name, image_name, kernel_dir, probe, release, workspace, bpf,
                           skip_reason):
         if bpf:
             label = 'eBPF'
@@ -91,7 +103,7 @@ class DistroBuilder(object):
         #docker.rm(container_name)
         try:
             ts0 = time.time()
-            stdout = builder_image.run(workspace, probe, kernel_dir, release, config_hash, container_name, image_name, args)
+            stdout = builder_image.run(workspace, probe, kernel_dir, release, config_hash, container_name, image_name, sign_file_hash_algo, args)
         except subprocess.CalledProcessError as e:
             took = time.time() - ts0
             logger.error("Build failed for {} probe {}-{} (took {:.3f}s)".format(label, release, config_hash, took))
@@ -107,8 +119,9 @@ class DistroBuilder(object):
                     logger.warn(make_string(line))
                 return cls.ProbeBuildResult(cls.ProbeBuildResult.BUILD_FAILED, took, stdout)
 
-    def build_kernel(self, workspace, probe, builder_distro, release, target):
+    def build_kernel(self, workspace, probe, builder_distro, release, target, do_sign=False):
         config_hash = self.hash_config(release, target)
+        sign_file_hash_algo = self.sign_file_hash_algo(release, target) if do_sign else ""
         output_dir = workspace.subdir('output')
 
         kmod_skip_reason = builder_image.skip_build(probe, output_dir, release, config_hash, False)
@@ -138,9 +151,9 @@ class DistroBuilder(object):
         container_name = ''
 
         return self.KernelBuildResult(
-            self.build_kernel_impl(config_hash, container_name, image_name, kernel_dir, probe, release, workspace, False,
+            self.build_kernel_impl(config_hash, sign_file_hash_algo, container_name, image_name, kernel_dir, probe, release, workspace, False,
                                 kmod_skip_reason),
-            self.build_kernel_impl(config_hash, container_name, image_name, kernel_dir, probe, release, workspace, True,
+            self.build_kernel_impl(config_hash, sign_file_hash_algo, container_name, image_name, kernel_dir, probe, release, workspace, True,
                                 ebpf_skip_reason),
         )
 
