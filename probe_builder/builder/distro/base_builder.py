@@ -64,11 +64,15 @@ class DistroBuilder(object):
 
     @staticmethod
     def config_module_sig_hash(path):
+        # Look up the default hashing algorithm for module signing from within the config file
+        # Notes:
+        # 1. If not present, use empty string (no signing)
+        # 2. Remove the quotes
         with open(path, 'r') as f:
             config_string = '[DEFAULT]\n' + f.read()
         config = configparser.ConfigParser()
         config.read_string(config_string)
-        return config['DEFAULT']['CONFIG_MODULE_SIG_HASH'].replace('"','')
+        return config['DEFAULT'].get('CONFIG_MODULE_SIG_HASH','').replace('"','')
 
     def unpack_kernels(self, workspace, distro, kernels):
         raise NotImplementedError
