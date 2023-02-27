@@ -18,6 +18,14 @@ RUN echo 'deb http://archive.ubuntu.com/ubuntu/ jammy-proposed restricted main m
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11 && \
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11
 
+# Enforce usage of clang 14, since clang 15 seems to
+# raise a lot of verifier issues
+# Notice how at the time of writing clang would just
+# link to clang-14 (as opposed to kinetic which has
+# apparently migrated to clang-15)
+ENV CLANG clang-14
+ENV LLC llc-14
+
 ADD builder-entrypoint.sh /
 WORKDIR /build/probe
 ENTRYPOINT [ "/builder-entrypoint.sh" ]
