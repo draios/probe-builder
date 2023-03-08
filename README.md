@@ -51,6 +51,7 @@ Distributions supported by the kernel crawler:
  - AmazonLinux
  - AmazonLinux2
  - CentOS
+ - CentOS Stream (8 and 9)
  - Debian
  - Fedora
  - Flatcar
