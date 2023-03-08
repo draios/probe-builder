@@ -80,6 +80,7 @@ CLI_DISTROS = {
     'AmazonLinux2': CrawlDistro('amazonlinux2', 'centos', 'AmazonLinux2'),
     'AmazonLinux2022': CrawlDistro('amazonlinux2022', 'centos', 'AmazonLinux2022'),
     'CentOS': CrawlDistro('centos', 'centos', 'CentOS'),
+    'CentOSStream': CrawlDistro('centosstream', 'centos', 'CentOSStream'),
     'Debian': CrawlDistro('debian', 'debian', 'Debian'),
     'Fedora': CrawlDistro('fedora', 'centos', 'Fedora'),
     'Flatcar': CrawlDistro('flatcar', 'flatcar', 'Flatcar'),
