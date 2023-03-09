@@ -76,14 +76,27 @@ class AmazonLinux2022Mirror(repo.Distro):
     # This was obtained by running:
     # cat /etc/yum.repos.d/amazonlinux.repo
     # https://al2022-repos-$awsregion-9761ab97.s3.dualstack.$awsregion.$awsdomain/core/mirrors/$releasever/$basearch/mirror.list
-    AL2022_BASE_URL = "https://al2022-repos-us-east-1-9761ab97.s3.dualstack.us-east-1.amazonaws.com"
+    #AL2022_BASE_URL = "https://al2022-repos-us-east-1-9761ab97.s3.dualstack.us-east-1.amazonaws.com"
+
+    # cat /etc/yum.repos.d/amazonlinux.repo
+    #[amazonlinux]
+    #name=Amazon Linux 2023 repository
+    #mirrorlist=https://cdn.amazonlinux.com/al2023/core/mirrors/$releasever/$basearch/mirror.list
+
+    AL202X_BASE_URLS = ["https://cdn.amazonlinux.com/al2022", "https://cdn.amazonlinux.com/al2023"]
 
     def __init__(self):
         super(AmazonLinux2022Mirror, self).__init__([])
 
     def list_repos(self):
+        repos = []
+        for base_url in self.AL202X_BASE_URLS:
+            repos.extend(self.list_repos_for_url(base_url=base_url))
+        return repos
+
+    def list_repos_for_url(self, base_url):
         # List of all available releases
-        releasemd_url = "{}/{}".format(self.AL2022_BASE_URL, "core/releasemd.xml")
+        releasemd_url = "{}/{}".format(base_url, "core/releasemd.xml")
         releasemd_xml = get_url(releasemd_url)
         e = etree.fromstring(releasemd_xml)
         # see https://github.com/aws/amazon-ecs-ami/blob/main/generate-release-vars.sh
@@ -108,11 +121,11 @@ class AmazonLinux2022Mirror(repo.Distro):
                 try:
                     print("Adding repo {}".format(r), flush=True)
                     repo_url = get_al_repo(
-                        "{}/{}".format(self.AL2022_BASE_URL, "core/mirrors/"),
+                        "{}/{}".format(base_url, "core/mirrors/"),
                         r + '/x86_64'
                     )
                     repo_urls.add(repo_url)
                 except requests.exceptions.HTTPError as err:
-                    print("WARNING: Could not get data for AmazonLinux2022 release: {}. Got error: {}".format(r, err), flush=True)
+                    print("WARNING: Could not get data for AmazonLinux202x base_url: {}, release: {}. Got error: {}".format(base_url, r, err), flush=True)
 
         return [rpm.RpmRepository(url) for url in sorted(repo_urls)]
