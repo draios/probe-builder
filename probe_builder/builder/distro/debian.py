@@ -77,7 +77,11 @@ class DebianBuilder(DistroBuilder):
             target_in_container = target.replace(workspace.workspace, '/build/probe')
             with open(makefile) as fp:
                 orig = fp.read()
-            patched = orig.replace('include /usr/src', 'include ' + os.path.join(target_in_container, 'usr/src'))
+            patched = orig
+            newpath = os.path.join(target_in_container, 'usr/src')
+            patched = patched.replace('include /usr/src', 'include ' + newpath)
+            patched = patched.replace('-C /usr/src', '-C ' + newpath)
+            patched = patched.replace('O=/usr/src', 'O=' + newpath)
             if patched != orig:
                 with open(makefile, 'w') as fp:
                     fp.write("# patched by sysdig-probe-builder\n")
