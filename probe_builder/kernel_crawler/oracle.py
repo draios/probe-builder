@@ -21,7 +21,7 @@ class Oracle6Mirror(repo.Distro):
     def __init__(self):
         super(Oracle6Mirror, self).__init__([])
 
-    def list_repos(self):
+    def list_repos(self, crawler_filter):
         return [OracleRepository(url) for url in self.OL6_REPOS]
 
 
@@ -38,7 +38,7 @@ class Oracle7Mirror(repo.Distro):
     def __init__(self):
         super(Oracle7Mirror, self).__init__([])
 
-    def list_repos(self):
+    def list_repos(self, crawler_filter):
         return [OracleRepository(url) for url in self.OL7_REPOS]
 
 
@@ -51,7 +51,7 @@ class Oracle8Mirror(repo.Distro):
     def __init__(self):
         super(Oracle8Mirror, self).__init__([])
 
-    def list_repos(self):
+    def list_repos(self, crawler_filter):
         return [OracleRepository(url) for url in self.OL8_REPOS]
 
 
@@ -65,5 +65,5 @@ class Oracle9Mirror(repo.Distro):
     def __init__(self):
         super(Oracle9Mirror, self).__init__([])
 
-    def list_repos(self):
+    def list_repos(self, crawler_filter):
         return [OracleRepository(url) for url in self.OL9_REPOS]

@@ -10,6 +10,7 @@ from .base_builder import DistroBuilder, to_s
 from .. import toolkit, builder_image
 from ... import crawl_kernels, docker
 from ...kernel_crawler.download import download_file
+from ...kernel_crawler.repo import EMPTY_FILTER
 
 logger = logging.getLogger(__name__)
 
@@ -69,8 +70,8 @@ class FlatcarBuilder(DistroBuilder):
         else:
             logger.info("Build for {} probe {}-{} ({}) successful".format(label, coreos_kernel_release, config_hash, release))
 
-    def crawl(self, workspace, distro, crawler_distro, download_config=None, filter=''):
-        kernels = crawl_kernels(crawler_distro, filter)
+    def crawl(self, workspace, distro, crawler_distro, download_config=None, crawler_filter=EMPTY_FILTER):
+        kernels = crawl_kernels(crawler_distro, crawler_filter=crawler_filter)
         try:
             os.makedirs(workspace.subdir(distro.distro))
         except OSError as exc:
