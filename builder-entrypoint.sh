@@ -9,6 +9,7 @@
 # PROBE_DEVICE_NAME
 # PROBE_NAME
 # PROBE_VERSION
+# SIGN_FILE_HASH_ALGO
 
 # optional env vars
 # CLANG
@@ -54,6 +55,16 @@ build_kmod() {
 	if [ "$KO_VERSION" != "$KERNEL_RELEASE" ]; then
 		echo "Corrupted probe, KO_VERSION " $KO_VERSION ", KERNEL_RELEASE " $KERNEL_RELEASE
 		exit 1
+	fi
+
+	if [ -n "${SIGN_FILE_HASH_ALGO}" ]; then
+		echo "Signing generated kernel module"
+		${KERNELDIR}/scripts/sign-file ${SIGN_FILE_HASH_ALGO} \
+			/code/sysdig-ro/signing-key/key.priv \
+			/code/sysdig-ro/signing-key/key.der \
+			driver/${PROBE_NAME}.ko
+	else
+		echo "Kernel module will NOT be signed"
 	fi
 
 	cp driver/$PROBE_NAME.ko $OUTPUT/$PROBE_NAME-$PROBE_VERSION-$ARCH-$KERNEL_RELEASE-$HASH.ko

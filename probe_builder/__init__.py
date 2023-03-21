@@ -115,10 +115,11 @@ def cli(debug):
 @click.option('-s', '--source-dir')
 @click.option('-t', '--download-timeout', type=click.FLOAT)
 @click.option('-v', '--probe-version')
+@click.option('-x', '--sign', is_flag=True)
 @click.argument('package', nargs=-1)
 def build(builder_image_prefix,
           download_concurrency, jobs, kernel_type, filter, probe_name, retries,
-          source_dir, download_timeout, probe_version, package):
+          source_dir, download_timeout, probe_version, sign, package):
     workspace_dir = os.getcwd()
     builder_source = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -136,7 +137,7 @@ def build(builder_image_prefix,
     with ThreadPoolExecutor(max_workers=jobs) as executor:
         kernels_futures = []
         for release, target in kernel_dirs:
-            future = executor.submit(distro_builder.build_kernel, workspace, probe, distro.builder_distro, release, target)
+            future = executor.submit(distro_builder.build_kernel, workspace, probe, distro.builder_distro, release, target, sign)
             kernels_futures.append((release, future))
 
 

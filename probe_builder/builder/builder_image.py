@@ -39,7 +39,7 @@ def build(workspace, dockerfile, dockerfile_tag):
         return obj
 
 def run(workspace, probe, kernel_dir, kernel_release,
-        config_hash, container_name, image_name, args):
+        config_hash, container_name, image_name, sign_file_hash_algo, args):
     volumes = [
         docker.DockerVolume(workspace.host_dir(probe.sysdig_dir), '/code/sysdig-ro', True),
         docker.DockerVolume(workspace.host_workspace(), '/build/probe', True),
@@ -53,7 +53,8 @@ def run(workspace, probe, kernel_dir, kernel_release,
         docker.EnvVar('KERNELDIR', kernel_dir.replace(workspace.workspace, '/build/probe/')),
         docker.EnvVar('KERNEL_RELEASE', kernel_release),
         docker.EnvVar('HASH', config_hash),
-        docker.EnvVar('HASH_ORIG', config_hash)
+        docker.EnvVar('HASH_ORIG', config_hash),
+        docker.EnvVar('SIGN_FILE_HASH_ALGO', sign_file_hash_algo),
     ]
 
     return docker.run(image_name, volumes, args, env, name=container_name)

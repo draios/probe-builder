@@ -68,6 +68,9 @@ class UbuntuBuilder(DistroBuilder):
     def hash_config(self, release, target):
         return self.md5sum(os.path.join(target, 'boot/config-{}'.format(release)))
 
+    def sign_file_hash_algo(self, release, target):
+        return self.config_module_sig_hash(os.path.join(target, 'boot/config-{}'.format(release)))
+
     def get_kernel_dir(self, workspace, release, target):
         return workspace.subdir(target, 'usr/src/linux-headers-{}'.format(release))
 

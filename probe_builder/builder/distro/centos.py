@@ -33,6 +33,17 @@ class CentosBuilder(DistroBuilder):
         except IOError:
             return self.md5sum(os.path.join(target, 'lib/modules/{}/config'.format(release)))
 
+    def sign_file_hash_algo(self, release, target):
+        boot = os.path.join(target, 'boot/config-{}'.format(release))
+        lib_modules = os.path.join(target, 'lib/modules/{}/config'.format(release))
+
+        if os.path.isfile(boot):
+            return self.config_module_sig_hash(boot)
+        elif os.path.isfile(lib_modules):
+            return self.config_module_sig_hash(lib_modules)
+        else:
+            raise Exception("No file found!")
+
     def get_kernel_dir(self, workspace, release, target):
         return workspace.subdir(target, 'usr/src/kernels', release)
 
