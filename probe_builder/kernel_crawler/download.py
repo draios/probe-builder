@@ -83,9 +83,18 @@ def download_batch(urls, output_dir, download_config=None):
 
     # use a parallel executor to download all stuff
     with ThreadPoolExecutor(max_workers=download_config.concurrency) as executor:
+        download_futures = []
         for basename, urls in urlmaps.items():
             output_file = os.path.join(output_dir, basename)
-            executor.submit(download_multiple_sources, output_file, urls)
+            download_futures.append((basename, executor.submit(download_multiple_sources, output_file, urls)))
+
+    for basename, future in download_futures:
+        try:
+            res = future.result()
+        except:
+            traceback.print_exc()
+            print("^^^ While downloading {}".format(basename))
+
 
 def get_url(url):
     resp = requests.get(url)
