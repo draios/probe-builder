@@ -7,5 +7,6 @@ class UbuntuMirror(repo.Distro):
         mirrors = [
             deb.DebMirror('http://mirrors.edge.kernel.org/ubuntu/'),
             deb.DebMirror('http://security.ubuntu.com/ubuntu/'),
+            deb.DebMirror('http://ports.ubuntu.com/ubuntu-ports/'),
         ]
         return mirrors
