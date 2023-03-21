@@ -42,7 +42,7 @@ unpack_rpm()
 	# rpm2cpio "$KERNEL_PACKAGE" | (cd "$OUTPUT_DIR" && cpio -idm)
 	# since alpine ships a bsdtar which seems perfectly capable (in and of itself)
 	# of extracting the files we need from an .rpm file, use that instead
-	bsdtar xvf "$KERNEL_PACKAGE" -C "$OUTPUT_DIR"
+	bsdtar xf "$KERNEL_PACKAGE" -C "$OUTPUT_DIR"
 }
 
 case "$1" in
