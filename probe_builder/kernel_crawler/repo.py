@@ -3,9 +3,17 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from collections import namedtuple
 import click
+import os
 import sys
 
-CrawlerFilter = namedtuple("CrawlerFilter", ["distro_filter", "kernel_filter"], defaults=["",""])
+def machine2arch(mach):
+    mach2arch = {
+        'x86_64': 'amd64',
+        'aarch64': 'arm64',
+    }
+    return mach2arch.get(mach, mach)
+
+CrawlerFilter = namedtuple("CrawlerFilter", ["machine", "arch", "distro_filter", "kernel_filter"], defaults=[os.uname().machine, machine2arch(os.uname().machine), "", ""])
 
 EMPTY_FILTER=CrawlerFilter()
 
@@ -43,15 +51,14 @@ class Mirror(object):
 
 
 class Distro(Mirror):
-    def __init__(self, mirrors):
-        super().__init__()
-        self.mirrors = mirrors
 
+    def get_mirrors(self, crawler_filter):
+        raise NotImplementedError
 
     def list_repos(self, crawler_filter):
         repos = []
         with click.progressbar(
-                self.mirrors, label='Checking repositories', file=sys.stderr, item_show_func=to_s) as mirrors:
+                self.get_mirrors(crawler_filter), label='Checking repositories', file=sys.stderr, item_show_func=to_s) as mirrors:
             for mirror in mirrors:
                 repos.extend(mirror.list_repos(crawler_filter))
         return repos

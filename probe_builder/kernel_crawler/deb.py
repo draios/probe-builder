@@ -238,7 +238,7 @@ class DebMirror(repo.Mirror):
     def __str__(self):
         return self.base_url
 
-    def scan_repo(self, dist):
+    def scan_repo(self, dist, arch):
         repos = {}
         all_comps = set()
         release = get_url(self.base_url + dist + 'Release')
@@ -252,7 +252,7 @@ class DebMirror(repo.Mirror):
                         all_comps.add(comp)
                 break
         for comp in all_comps:
-            url = dist + comp + '/binary-amd64/'
+            url = dist + comp + '/binary-{}/'.format(arch)
             repos[url] = DebRepository(self.base_url, url)
         return repos
 
@@ -277,11 +277,11 @@ class DebMirror(repo.Mirror):
                 dists, label='Scanning {}'.format(self.base_url), file=sys.stderr, item_show_func=repo.to_s) as dists:
             for dist in dists:
                 try:
-                    repos.update(self.scan_repo('dists/{}'.format(dist)))
+                    repos.update(self.scan_repo('dists/{}'.format(dist), crawler_filter.arch))
                 except requests.HTTPError:
                     pass
                 try:
-                    repos.update(self.scan_repo('dists/{}updates/'.format(dist)))
+                    repos.update(self.scan_repo('dists/{}updates/'.format(dist), crawler_filter.arch))
                 except requests.HTTPError:
                     pass
 

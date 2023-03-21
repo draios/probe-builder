@@ -5,65 +5,55 @@ from . import rpm
 class OracleRepository(rpm.RpmRepository):
     @classmethod
     def kernel_package_query(cls):
-        return '''(name IN ('kernel', 'kernel-devel', 'kernel-uek', 'kernel-uek-devel') AND arch = 'x86_64')'''
+        # here we want to filter out kernel source packages, so we accept both x86_64 and aarch64
+        # --> at the end of the day, they're separate repositories so we only expect to find
+        # the ones matching the architecture of the repository
+        return '''(name IN ('kernel', 'kernel-devel', 'kernel-uek', 'kernel-uek-devel') AND arch IN ('x86_64', 'aarch64'))'''
 
 
 class Oracle6Mirror(repo.Distro):
     OL6_REPOS = [
-        'http://yum.oracle.com/repo/OracleLinux/OL6/latest/x86_64/',
-        'http://yum.oracle.com/repo/OracleLinux/OL6/MODRHCK/x86_64/',
-        'http://yum.oracle.com/repo/OracleLinux/OL6/UEKR4/x86_64/',
-        'http://yum.oracle.com/repo/OracleLinux/OL6/UEKR3/latest/x86_64/',
-        'http://yum.oracle.com/repo/OracleLinux/OL6/UEK/latest/x86_64/',
-
+        'http://yum.oracle.com/repo/OracleLinux/OL6/latest/{}/',
+        'http://yum.oracle.com/repo/OracleLinux/OL6/MODRHCK/{}/',
+        'http://yum.oracle.com/repo/OracleLinux/OL6/UEKR4/{}/',
+        'http://yum.oracle.com/repo/OracleLinux/OL6/UEKR3/latest/{}/',
+        'http://yum.oracle.com/repo/OracleLinux/OL6/UEK/latest/{}/',
     ]
 
-    def __init__(self):
-        super(Oracle6Mirror, self).__init__([])
-
     def list_repos(self, crawler_filter):
-        return [OracleRepository(url) for url in self.OL6_REPOS]
+        return [OracleRepository(url.format(crawler_filter.machine)) for url in self.OL6_REPOS]
 
 
 class Oracle7Mirror(repo.Distro):
     OL7_REPOS = [
-        'http://yum.oracle.com/repo/OracleLinux/OL7/latest/x86_64/',
-        'http://yum.oracle.com/repo/OracleLinux/OL7/MODRHCK/x86_64/',
-        'http://yum.oracle.com/repo/OracleLinux/OL7/UEKR6/x86_64/',
-        'http://yum.oracle.com/repo/OracleLinux/OL7/UEKR5/x86_64/',
-        'http://yum.oracle.com/repo/OracleLinux/OL7/UEKR4/x86_64/',
-        'http://yum.oracle.com/repo/OracleLinux/OL7/UEKR3/x86_64/',
+        'http://yum.oracle.com/repo/OracleLinux/OL7/latest/{}/',
+        'http://yum.oracle.com/repo/OracleLinux/OL7/MODRHCK/{}/',
+        'http://yum.oracle.com/repo/OracleLinux/OL7/UEKR6/{}/',
+        'http://yum.oracle.com/repo/OracleLinux/OL7/UEKR5/{}/',
+        'http://yum.oracle.com/repo/OracleLinux/OL7/UEKR4/{}/',
+        'http://yum.oracle.com/repo/OracleLinux/OL7/UEKR3/{}/',
     ]
 
-    def __init__(self):
-        super(Oracle7Mirror, self).__init__([])
-
     def list_repos(self, crawler_filter):
-        return [OracleRepository(url) for url in self.OL7_REPOS]
+        return [OracleRepository(url.format(crawler_filter.machine)) for url in self.OL7_REPOS]
 
 
 class Oracle8Mirror(repo.Distro):
     OL8_REPOS = [
-        'http://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/',
-        'http://yum.oracle.com/repo/OracleLinux/OL8/UEKR6/x86_64/',
+        'http://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/{}/',
+        'http://yum.oracle.com/repo/OracleLinux/OL8/UEKR6/{}/',
     ]
 
-    def __init__(self):
-        super(Oracle8Mirror, self).__init__([])
-
     def list_repos(self, crawler_filter):
-        return [OracleRepository(url) for url in self.OL8_REPOS]
+        return [OracleRepository(url.format(crawler_filter.machine)) for url in self.OL8_REPOS]
 
 
 class Oracle9Mirror(repo.Distro):
     OL9_REPOS = [
-        'http://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64/',
-        'http://yum.oracle.com/repo/OracleLinux/OL9/appstream/x86_64/',
-        'http://yum.oracle.com/repo/OracleLinux/OL9/UEKR7/x86_64/',
+        'http://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/{}/',
+        'http://yum.oracle.com/repo/OracleLinux/OL9/appstream/{}/',
+        'http://yum.oracle.com/repo/OracleLinux/OL9/UEKR7/{}/',
     ]
 
-    def __init__(self):
-        super(Oracle9Mirror, self).__init__([])
-
     def list_repos(self, crawler_filter):
-        return [OracleRepository(url) for url in self.OL9_REPOS]
+        return [OracleRepository(url.format(crawler_filter.machine)) for url in self.OL9_REPOS]

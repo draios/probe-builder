@@ -3,9 +3,10 @@ from . import repo
 
 
 class UbuntuMirror(repo.Distro):
-    def __init__(self):
+    def get_mirrors(self, crawler_filter):
         mirrors = [
             deb.DebMirror('http://mirrors.edge.kernel.org/ubuntu/'),
             deb.DebMirror('http://security.ubuntu.com/ubuntu/'),
+            deb.DebMirror('http://ports.ubuntu.com/ubuntu-ports/'),
         ]
-        super(UbuntuMirror, self).__init__(mirrors)
+        return mirrors

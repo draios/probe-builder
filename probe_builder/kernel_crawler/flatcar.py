@@ -24,9 +24,9 @@ class FlatcarRepository(Repository):
 class FlatcarMirror(Distro):
     CHANNELS = ['stable', 'beta', 'alpha']
 
-    def __init__(self):
-        mirrors = ['https://{}.release.flatcar-linux.net/amd64-usr/'.format(channel) for channel in self.CHANNELS]
-        super(FlatcarMirror, self).__init__(mirrors)
+    def get_mirrors(self, crawler_filter):
+        mirrors = ['https://{}.release.flatcar-linux.net/{}-usr/'.format(channel, crawler_filter.arch) for channel in self.CHANNELS]
+        return mirrors
 
     def scan_repo(self, base_url):
         dists = requests.get(base_url)
@@ -43,6 +43,6 @@ class FlatcarMirror(Distro):
 
     def list_repos(self, crawler_filter):
         repos = []
-        for repo in self.mirrors:
+        for repo in self.get_mirrors(crawler_filter):
             repos.extend(self.scan_repo(repo))
         return repos
