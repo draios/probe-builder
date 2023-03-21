@@ -220,9 +220,9 @@ class DebRepository(repo.Repository):
         logger.debug("after pruning, deps=\n{}".format(pp.pformat(deps)))
         return deps
 
-    def get_package_tree(self, filter=''):
+    def get_package_tree(self, kernel_filter=''):
         packages = self.get_raw_package_db()
-        package_list = self.get_package_list(packages, filter)
+        package_list = self.get_package_list(packages, kernel_filter)
         return self.build_package_tree(packages, package_list)
 
 
@@ -267,8 +267,10 @@ class DebMirror(repo.Mirror):
                  and not dist.startswith('?')
                  and not dist.startswith('http')
                  and self.repo_filter(dist)
+                 and dist.startswith(self.distro_filter)
                  ]
 
+        logger.info("Dists found under {}, filtered by '{}': {}".format(dists_url, self.distro_filter, dists))
         repos = {}
         with click.progressbar(
                 dists, label='Scanning {}'.format(self.base_url), file=sys.stderr, item_show_func=repo.to_s) as dists:

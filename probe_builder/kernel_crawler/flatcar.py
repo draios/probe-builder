@@ -10,7 +10,7 @@ class FlatcarRepository(Repository):
     def __init__(self, base_url):
         self.base_url = base_url
 
-    def get_package_tree(self, version=''):
+    def get_package_tree(self, kernel_filter=''):
         release = os.path.basename(self.base_url.rstrip('/'))
         if version not in release:
             return {}

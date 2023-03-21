@@ -15,8 +15,8 @@ class UbuntuBuilder(DistroBuilder):
     KERNEL_VERSION_RE = re.compile(r'(?P<version>[0-9]\.[0-9]+\.[0-9]+-[0-9]+)\.(?P<update>[0-9][^_]*)')
     KERNEL_RELEASE_RE = re.compile(r'(?P<release>[0-9]\.[0-9]+\.[0-9]+-[0-9]+-[a-z0-9-]+)')
 
-    def crawl(self, workspace, distro, crawler_distro, download_config=None, filter=''):
-        crawled_dict = super().crawl(workspace=workspace, distro=distro, crawler_distro=crawler_distro, download_config=download_config, filter=filter)
+    def crawl(self, workspace, distro, crawler_distro, download_config=None, distro_filter='', kernel_filter=''):
+        crawled_dict = super().crawl(workspace=workspace, distro=distro, crawler_distro=crawler_distro, download_config=download_config, distro_filter=distro_filter, kernel_filter=kernel_filter)
         kernels = []
         # batch packages according to package version, e.g. '5.15.0-1001/1' as returned by the crawler
         # (which is the package version of the main 'linux-headers-5.15.0-1001-gke_5.15.0-1001.1_amd64.deb')

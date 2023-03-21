@@ -2,6 +2,7 @@
 from __future__ import print_function
 import traceback
 
+import logging
 import requests
 from lxml import etree, html
 import sqlite3
@@ -9,6 +10,7 @@ import tempfile
 
 from . import repo
 from probe_builder.kernel_crawler.download import get_url
+logger = logging.getLogger(__name__)
 
 try:
     import lzma
@@ -71,7 +73,7 @@ class RpmRepository(repo.Repository):
         pkglist_url = self.get_loc_by_xpath(repomd, '//repo:repomd/repo:data[@type="primary_db"]/repo:location/@href')
         return self.base_url + pkglist_url
 
-    def get_package_tree(self, filter=''):
+    def get_package_tree(self, kernel_filter=''):
         packages = {}
         try:
             repodb_url = self.get_repodb_url()
@@ -82,7 +84,7 @@ class RpmRepository(repo.Repository):
         with tempfile.NamedTemporaryFile() as tf:
             tf.write(repodb)
             tf.flush()
-            for pkg in self.parse_repo_db(tf.name, filter):
+            for pkg in self.parse_repo_db(tf.name, kernel_filter):
                 version, url = pkg
                 packages.setdefault(version, set()).add(self.base_url + url)
         return packages
@@ -117,11 +119,17 @@ class RpmMirror(repo.Mirror):
         dists = dists.content
         doc = html.fromstring(dists, self.base_url)
         dists = doc.xpath('/html/body//a[not(@href="../")]/@href')
-        return [RpmRepository(self.dist_url(dist)) for dist in dists
+
+        fdists = [dist for dist in dists
                 if dist.endswith('/')
                 and not dist.startswith('/')
                 and not dist.startswith('?')
                 and not dist.startswith('http')
                 and self.repo_filter(dist)
                 and self.dist_exists(dist)
+                and dist.startswith(self.distro_filter)
                 ]
+
+
+        logger.info("Dists found under {}, filtered by '{}': {}".format(self.base_url, self.distro_filter, fdists))
+        return [RpmRepository(self.dist_url(dist)) for dist in fdists]
