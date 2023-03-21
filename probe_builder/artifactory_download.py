@@ -5,13 +5,14 @@ from __future__ import print_function
 import click
 import requests
 import json
+import os
 
 from probe_builder.context import DownloadConfig
 from probe_builder.builder.distro.base_builder import to_s
 from probe_builder.kernel_crawler.download import download_file
 
 
-def list_artifactory_rpm(url, key, repo_name):
+def list_artifactory_rpm(url, key, repo_name, machine):
     req = {'repo': repo_name}
     req = 'items.find({})'.format(json.dumps(req))
     resp = requests.post(url + '/api/search/aql', data=req, headers={
@@ -22,7 +23,7 @@ def list_artifactory_rpm(url, key, repo_name):
     resp.raise_for_status()
     resp = resp.json()
     for pkg in resp['results']:
-        if pkg['name'].endswith('.rpm'):
+        if pkg['name'].endswith('{}.rpm'.format(machine)):
             yield pkg['name']
 
 
@@ -42,24 +43,27 @@ def download_artifactory_rpm(url, key, repo_name, pkgs):
 @click.option('--url')
 @click.option('--key')
 @click.option('--repo')
-def cli(ctx, url, key, repo):
+@click.option('--machine', default=os.uname().machine)
+
+def cli(ctx, url, key, repo, machine):
     ctx.ensure_object(dict)
     ctx.obj['url'] = url
     ctx.obj['key'] = key
     ctx.obj['repo'] = repo
+    ctx.obj['machine'] = machine
 
 
 @click.command()
 @click.pass_obj
 def cli_list(obj):
-    for pkg in list_artifactory_rpm(obj['url'], obj['key'], obj['repo']):
+    for pkg in list_artifactory_rpm(obj['url'], obj['key'], obj['repo'], obj['machine']):
         print(pkg)
 
 
 @click.command()
 @click.pass_obj
 def cli_download(obj):
-    rpms = list(list_artifactory_rpm(obj['url'], obj['key'], obj['repo']))
+    rpms = list(list_artifactory_rpm(obj['url'], obj['key'], obj['repo'], obj['machine']))
     download_artifactory_rpm(obj['url'], obj['key'], obj['repo'], rpms)
 
 
