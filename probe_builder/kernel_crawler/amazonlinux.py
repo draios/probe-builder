@@ -30,9 +30,6 @@ class AmazonLinux1Mirror(repo.Distro):
         '2018.03/main',
     ]
 
-    def __init__(self):
-        super(AmazonLinux1Mirror, self).__init__([])
-
     def list_repos(self, crawler_filter):
         repo_urls = set()
         with click.progressbar(
@@ -49,9 +46,6 @@ class AmazonLinux2Mirror(repo.Distro):
         'extras/kernel-5.4/latest',
         'extras/kernel-5.10/latest',
     ]
-
-    def __init__(self):
-        super(AmazonLinux2Mirror, self).__init__([])
 
     def list_repos(self, crawler_filter):
         repo_urls = set()
@@ -84,9 +78,6 @@ class AmazonLinux2022Mirror(repo.Distro):
     #mirrorlist=https://cdn.amazonlinux.com/al2023/core/mirrors/$releasever/$basearch/mirror.list
 
     AL202X_BASE_URLS = ["https://cdn.amazonlinux.com/al2022", "https://cdn.amazonlinux.com/al2023"]
-
-    def __init__(self):
-        super(AmazonLinux2022Mirror, self).__init__([])
 
     def list_repos(self, crawler_filter):
         repos = []

@@ -17,27 +17,27 @@ def v6_or_v7(ver):
     return ver.startswith('6') or ver.startswith('7')
 
 class CentosMirror(repo.Distro):
-    def __init__(self):
+    def get_mirrors(self, crawler_filter):
         mirrors = [
-            rpm.RpmMirror('http://mirror.centos.org/centos/', 'os/x86_64/', v7_only),
-            rpm.RpmMirror('http://mirror.centos.org/centos/', 'updates/x86_64/', v7_only),
+            rpm.RpmMirror('http://mirror.centos.org/centos/', 'os/{}/'.format(crawler_filter.machine), v7_only),
+            rpm.RpmMirror('http://mirror.centos.org/centos/', 'updates/{}/'.format(crawler_filter.machine), v7_only),
             # CentOS 8 reached end-of-life at the end of 2021, so no point looking for it
             # rpm.RpmMirror('http://mirror.centos.org/centos/', 'BaseOS/x86_64/os/', v8_only),
-            rpm.RpmMirror('http://archive.kernel.org/centos-vault/', 'os/x86_64/', v6_or_v7),
-            rpm.RpmMirror('http://archive.kernel.org/centos-vault/', 'updates/x86_64/', v6_or_v7),
-            rpm.RpmMirror('http://archive.kernel.org/centos-vault/', 'BaseOS/x86_64/os/', v8_only),
+            rpm.RpmMirror('http://archive.kernel.org/centos-vault/', 'os/{}/'.format(crawler_filter.machine), v6_or_v7),
+            rpm.RpmMirror('http://archive.kernel.org/centos-vault/', 'updates/{}/'.format(crawler_filter.machine), v6_or_v7),
+            rpm.RpmMirror('http://archive.kernel.org/centos-vault/', 'BaseOS/{}/os/'.format(crawler_filter.machine), v8_only),
         ]
-        super(CentosMirror, self).__init__(mirrors)
+        return mirrors
 
 class CentosStreamMirror(repo.Distro):
-    def __init__(self):
+    def get_mirrors(self, crawler_filter):
         mirrors = [
             # CentOS 8 Stream
-            rpm.RpmMirror('http://mirror.centos.org/centos/', 'BaseOS/x86_64/os/', v8_stream),
-            rpm.RpmMirror('http://mirror.centos.org/centos/', 'AppStream/x86_64/os/', v8_stream),
+            rpm.RpmMirror('http://mirror.centos.org/centos/', 'BaseOS/{}/os/'.format(crawler_filter.machine), v8_stream),
+            rpm.RpmMirror('http://mirror.centos.org/centos/', 'AppStream/{}/os/'.format(crawler_filter.machine), v8_stream),
 
             # CentOS 9 Stream
-            rpm.RpmMirror('http://mirror.stream.centos.org/', 'BaseOS/x86_64/os/', v9_only),
-            rpm.RpmMirror('http://mirror.stream.centos.org/', 'AppStream/x86_64/os/', v9_only),
+            rpm.RpmMirror('http://mirror.stream.centos.org/', 'BaseOS/{}/os/'.format(crawler_filter.machine), v9_only),
+            rpm.RpmMirror('http://mirror.stream.centos.org/', 'AppStream/{}/os/'.format(crawler_filter.machine), v9_only),
         ]
-        super(CentosStreamMirror, self).__init__(mirrors)
+        return mirrors

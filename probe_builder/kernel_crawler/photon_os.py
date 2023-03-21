@@ -28,11 +28,8 @@ class PhotonOsMirror(repo.Distro):
         ('4.0', '_updates'),
     ]
 
-    def __init__(self):
-        super(PhotonOsMirror, self).__init__([])
-
     def list_repos(self, crawler_filter):
         return [
-            PhotonOsRepository('https://packages.vmware.com/photon/{v}/photon{r}_{v}_x86_64/'.format(
-                v=version, r=repo_tag))
+            PhotonOsRepository('https://packages.vmware.com/photon/{v}/photon{r}_{v}_{m}/'.format(
+                v=version, r=repo_tag, m=crawler_filter.machine))
             for version, repo_tag in self.PHOTON_OS_VERSIONS]

@@ -51,15 +51,14 @@ class Mirror(object):
 
 
 class Distro(Mirror):
-    def __init__(self, mirrors):
-        super().__init__()
-        self.mirrors = mirrors
 
+    def get_mirrors(self, crawler_filter):
+        raise NotImplementedError
 
     def list_repos(self, crawler_filter):
         repos = []
         with click.progressbar(
-                self.mirrors, label='Checking repositories', file=sys.stderr, item_show_func=to_s) as mirrors:
+                self.get_mirrors(crawler_filter), label='Checking repositories', file=sys.stderr, item_show_func=to_s) as mirrors:
             for mirror in mirrors:
                 repos.extend(mirror.list_repos(crawler_filter))
         return repos
