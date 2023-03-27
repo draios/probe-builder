@@ -75,6 +75,7 @@ class LocalDistro(object):
 
 
 CLI_DISTROS = {
+    'AliyunLinux': CrawlDistro('aliyunlinux', 'centos', 'AliyunLinux'),
     'AlmaLinux': CrawlDistro('almalinux', 'centos', 'AlmaLinux'),
     'AmazonLinux': CrawlDistro('amazonlinux', 'centos', 'AmazonLinux'),
     'AmazonLinux2': CrawlDistro('amazonlinux2', 'centos', 'AmazonLinux2'),
@@ -200,7 +201,7 @@ def build(builder_image_prefix,
 @click.argument('kernel_filter', required=False, default='')
 def crawl(distro, distro_filter='', kernel_filter=''):
     crawler_filter = kernel_crawler.repo.CrawlerFilter(distro_filter=distro_filter, kernel_filter=kernel_filter)
-    kernels = crawl_kernels(distro, distro_filter, crawler_filter=crawler_filter)
+    kernels = crawl_kernels(distro, crawler_filter=crawler_filter)
     for release, packages in kernels.items():
         print('=== {} ==='.format(release))
         for pkg in packages:

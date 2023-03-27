@@ -48,6 +48,9 @@ Then you can pass the directory containing the kernel files to the probe builder
 (`/directory-containing-kernel-packages/` in the examples below).
 
 Distributions supported by the kernel crawler:
+ - AliyunLinux 2 (Alibaba Cloud Linux 2)
+ - AliyunLinux 3 (Alibaba Cloud Linux 3)
+ - AlmaLinux
  - AmazonLinux
  - AmazonLinux2
  - CentOS
@@ -59,6 +62,7 @@ Distributions supported by the kernel crawler:
  - Oracle7
  - Oracle8
  - PhotonOS
+ - RockyLinux
  - Ubuntu
 
 Please note that you do *not* need to extract or install the kernel packages on the build host.

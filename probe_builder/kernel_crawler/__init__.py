@@ -1,3 +1,4 @@
+from .aliyunlinux import AliyunLinuxMirror
 from .almalinux import AlmaLinuxMirror
 from .amazonlinux import AmazonLinux1Mirror, AmazonLinux2Mirror, AmazonLinux2022Mirror
 from .centos import CentosMirror, CentosStreamMirror
@@ -12,6 +13,7 @@ from .ubuntu import UbuntuMirror
 from .flatcar import FlatcarMirror
 
 DISTROS = {
+    'AliyunLinux': AliyunLinuxMirror,
     'AlmaLinux': AlmaLinuxMirror,
     'AmazonLinux': AmazonLinux1Mirror,
     'AmazonLinux2': AmazonLinux2Mirror,
