@@ -75,6 +75,7 @@ class LocalDistro(object):
 
 
 CLI_DISTROS = {
+    'AliyunLinux': CrawlDistro('aliyunlinux', 'centos', 'AliyunLinux'),
     'AlmaLinux': CrawlDistro('almalinux', 'centos', 'AlmaLinux'),
     'AmazonLinux': CrawlDistro('amazonlinux', 'centos', 'AmazonLinux'),
     'AmazonLinux2': CrawlDistro('amazonlinux2', 'centos', 'AmazonLinux2'),
