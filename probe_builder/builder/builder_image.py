@@ -102,6 +102,12 @@ SKIPPED_AL2_KMOD_KERNELS = [
     ("5.10.29-27.128.amzn2.aarch64", "858728782bac5a488a5e7746977cb92f"),
 ]
 
+MIN_EBPF_SUPPORTED_RELEASE = {
+    'x86_64': '4.14',
+    'aarch64': '4.17',
+    's390x': '5.5',
+}
+
 def probe_built(mach, probe, output_dir, kernel_release, config_hash, bpf):
     probe_file_name = probe_output_file(mach, probe, kernel_release, config_hash, bpf)
     return os.path.exists(os.path.join(output_dir, probe_file_name))
@@ -114,8 +120,9 @@ def skip_build(mach, probe, output_dir, kernel_release, config_hash, bpf):
         return "Unsupported kernel"
     if bpf:
         kernel_version = Version(kernel_release)
-        if kernel_version < Version('4.14'):
-            return 'Kernel {} too old to support eBPF (need at least 4.14)'.format(kernel_release)
+        min_release = MIN_EBPF_SUPPORTED_RELEASE[mach]
+        if kernel_version < Version(min_release):
+            return 'Kernel {} too old to support eBPF (need at least {} for {})'.format(kernel_release, min_release, mach)
     else:
         if (kernel_release, config_hash) in SKIPPED_AL2_KMOD_KERNELS:
             return "AmazonLinux2 kernel built with gcc-10 but without wrapper Makefile"
