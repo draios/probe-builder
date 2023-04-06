@@ -93,9 +93,13 @@ SKIPPED_KERNELS = [
 #
 SKIPPED_AL2_KMOD_KERNELS = [
     ("5.10.47-39.130.amzn2.x86_64", "c2f4afab82d814c0917176b3e8bbc5eb"),
+    ("5.10.47-39.130.amzn2.aarch64", "d7b343fc178258fb3898079458e0d719"),
     ("5.10.35-31.135.amzn2.x86_64", "72045c5b99c571a8dfffc5b537912864"),
+    ("5.10.35-31.135.amzn2.aarch64", "5912b432dc7913597b9592d51ada09c7"),
     ("5.10.29-27.126.amzn2.x86_64", "587d839a59252859091e65c52f202a92"),
+    ("5.10.29-27.126.amzn2.aarch64", "f77adeff0fdb00aec975b7c860674512"),
     ("5.10.29-27.128.amzn2.x86_64", "94f8e35b13a393ca58b765bd738e2562"),
+    ("5.10.29-27.128.amzn2.aarch64", "858728782bac5a488a5e7746977cb92f"),
 ]
 
 def probe_built(mach, probe, output_dir, kernel_release, config_hash, bpf):
