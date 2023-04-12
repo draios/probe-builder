@@ -42,6 +42,7 @@ class Oracle8Mirror(repo.Distro):
     OL8_REPOS = [
         'http://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/{}/',
         'http://yum.oracle.com/repo/OracleLinux/OL8/UEKR6/{}/',
+        'http://yum.oracle.com/repo/OracleLinux/OL8/UEKR7/{}/',
     ]
 
     def list_repos(self, crawler_filter):
