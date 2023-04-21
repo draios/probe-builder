@@ -25,7 +25,14 @@ DEFAULT_RPM_BUCKETS = {
         ],
     's390x':
         [
+            'rhel-8-for-s390x-appstream-rpms',
+            'rhel-8-for-s390x-baseos-rpms',
+            'rhel-9-for-s390x-appstream-rpms',
+            'rhel-9-for-s390x-baseos-rpms',
             'rhel-8-for-s390x-baseos-eus-rpms',
+            'rhel-8-for-s390x-baseos-beta-rpms',
+            'rhel-9-for-s390x-appstream-beta-rpms',
+            'rhel-9-for-s390x-baseos-beta-rpms',
         ],
 }
 
@@ -85,7 +92,7 @@ parser.add_argument("-q", "--quiet", action="store_true")
 parser.add_argument("-v", "--verbose", action="store_true")
 parser.add_argument("-i", "--interactive", help="Interactive output to stderr", action="store_true")
 parser.add_argument("-o", "--outdir", help="Output directory", default=".")
-parser.add_argument("-m", "--machine", help="Machine type", choices=[DEFAULT_RPM_BUCKETS.keys()], default=os.uname().machine)
+parser.add_argument("-m", "--machine", help="Machine type", choices=[*DEFAULT_RPM_BUCKETS.keys()], default=os.uname().machine)
 
 args = parser.parse_args()
 
@@ -188,7 +195,7 @@ for bucket in args.buckets:
             # build rpm name from the data received from the server
             pname = pkg_name(p)
             # add mapping pkg.rpm -> (url, sha256) to packages
-            packages[pname] = {"url": p["downloadHref"], "sha256": p["checksum"]}
+            packages[pname] = {"url": p.get("downloadHref", p['href']+"/download"), "sha256": p["checksum"]}
 
         # Print a little status update so it doesn't look like we've gone out to lunch
         progress(".")
