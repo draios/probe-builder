@@ -28,6 +28,7 @@ DEFAULT_RPM_BUCKETS = {
             'rhel-8-for-s390x-appstream-rpms',
             'rhel-8-for-s390x-baseos-rpms',
             'rhel-9-for-s390x-appstream-rpms',
+            'rhel-9-for-s390x-appstream-eus-rpms',
             'rhel-9-for-s390x-baseos-rpms',
             'rhel-8-for-s390x-baseos-eus-rpms',
             'rhel-8-for-s390x-baseos-beta-rpms',
