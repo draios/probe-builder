@@ -27,7 +27,7 @@ call_cmake() {
 	# Make sure we've been passed a full checkout of libs,
 	# (on which we're forced to be running cmake to configure)
 	# as opposed to an already-configured source package
-	if [[ ! -f ${SRC_DIR}/CMakeLists.txt ]]; then
+	if [[ ! -e ${SRC_DIR}/CMakeLists.txt ]]; then
 		return 1
 	fi
 
@@ -61,8 +61,8 @@ build_kmod() {
 		BUILD_DIR=/build/sysdig/driver
 		make -C $BUILD_DIR driver
 	else
-		# cmake failed, so we're probably dealing with a package file
-		# and we can therefore run make from the source tree
+		# cmake failed, so we're probably dealing with an agent-kmodule.tgz
+		# package file and we can therefore run make from the source tree
 		# (without the driver/ prefix)
 		BUILD_DIR=/code/sysdig-rw
 		make -C $BUILD_DIR all
@@ -89,11 +89,16 @@ build_bpf() {
 		mkdir -p /build/sysdig
 		cd /build/sysdig
 
-		# for the eBPF probe, cmake will only configure the files we need
-		# but we'll end up running make from the source tree anyway
+		# Glue code for backwards compatibility with a plain libs/ checkout
 		if call_cmake /code/sysdig-rw; then
+			# for the eBPF probe, cmake will only render driver_config.h
+			# in the source directory so we'll end up running
+			# make from the source tree anyway (as opposed to the build directory)
 			BUILD_DIR=/code/sysdig-rw/driver
 		else
+			# cmake failed, so we're probably dealing with an agent-kmodule.tgz
+			# package file and we can therefore run make from the source tree
+			# (without the driver/ prefix)
 			BUILD_DIR=/code/sysdig-rw
 		fi
 		make -C $BUILD_DIR/bpf clean all
@@ -101,6 +106,8 @@ build_bpf() {
 	fi
 }
 
+# make a local copy of the source code so we can
+# run cmake on it without altering the code on the host
 rm -rf /code/sysdig-rw
 cp -rf /code/sysdig-ro /code/sysdig-rw
 
