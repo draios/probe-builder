@@ -1,4 +1,4 @@
-FROM centos:7
+FROM fedora:27
 
 RUN yum -y install \
 	wget \
@@ -11,10 +11,12 @@ RUN yum -y install \
 	make \
 	cmake \
 	elfutils-devel \
-	bc \
-	openssl-devel \
+	findutils \
+	kmod \
+	clang \
+	llvm \
 	python-lxml && yum clean all
 
-ADD builder-entrypoint-coreos.sh /
+ADD builder-entrypoint.sh /
 WORKDIR /build/probe
-ENTRYPOINT [ "/builder-entrypoint-coreos.sh" ]
+ENTRYPOINT [ "/builder-entrypoint.sh" ]

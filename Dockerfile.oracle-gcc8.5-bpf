@@ -1,4 +1,4 @@
-FROM fedora:29
+FROM oraclelinux:8
 
 RUN yum -y install \
 	wget \
@@ -6,14 +6,13 @@ RUN yum -y install \
 	gcc \
 	gcc-c++ \
 	autoconf \
-	bison \
-	flex \
 	make \
 	cmake \
-	elfutils-devel \
-	findutils \
-	kmod \
-	python-lxml && yum clean all
+	elfutils-libelf-devel \
+	file \
+	clang \
+	llvm \
+	kmod && yum clean all
 
 ADD builder-entrypoint.sh /
 WORKDIR /build/probe

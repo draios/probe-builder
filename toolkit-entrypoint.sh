@@ -20,26 +20,29 @@ unpack_coreos_kernel()
 	# mount developer container is a very stateful part of this script
 	# the section between mount/unmounting should be kept very small
 	# otherwise if something fails there are many inconsistencies that can happen
-	LOOPDEV=$(kpartx -asv /tmp/container.img | cut -d\  -f 3)
-	mount /dev/mapper/$LOOPDEV /mnt
+	OFFSET=$(sfdisk -J /tmp/container.img | jq '.partitiontable.sectorsize * .partitiontable.partitions[0].start')
+	mount -o ro,loop,offset="$OFFSET" /tmp/container.img /mnt
+
 	# Copy kernel headers
 	cp -r /mnt/lib/modules "$OUTPUT_DIR"
 
 	# Copy kernel config
-	rm -f $OUTPUT_DIR/config-*
-	cp /mnt/usr/boot/config-* $OUTPUT_DIR/
-	cp $OUTPUT_DIR/config-* $OUTPUT_DIR/config_orig
-	# umount and remove the developer container
+	rm -f $OUTPUT_DIR/config*
+	cp /mnt/usr/boot/config* $OUTPUT_DIR/
+
+	# umount the developer container
 	umount /mnt
-	kpartx -dv /tmp/container.img
 }
 
 unpack_rpm()
 {
 	KERNEL_PACKAGE="$1"
 	OUTPUT_DIR="$2"
-
-	rpm2cpio "$KERNEL_PACKAGE" | (cd "$OUTPUT_DIR" && cpio -idm)
+	# This "rpm2cpio | cpio pipeline" seems to fail under obscure circumstances
+	# rpm2cpio "$KERNEL_PACKAGE" | (cd "$OUTPUT_DIR" && cpio -idm)
+	# since alpine ships a bsdtar which seems perfectly capable (in and of itself)
+	# of extracting the files we need from an .rpm file, use that instead
+	bsdtar xf "$KERNEL_PACKAGE" -C "$OUTPUT_DIR"
 }
 
 case "$1" in

@@ -1,4 +1,4 @@
-FROM alpine
+FROM alpine:3.16
 
 RUN apk add \
     bash \
@@ -10,10 +10,19 @@ RUN apk add \
 	git \
 	jq \
 	multipath-tools \
+	python3 \
+	py3-pip \
 	py3-lxml \
+	sed \
+	sfdisk \
 	wget \
+	docker-cli-buildx \
     docker
+
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
 ADD . /builder
 WORKDIR /builder
+RUN /usr/bin/pip install -e .
 ENTRYPOINT [ "/builder/main-builder-entrypoint.sh" ]
+

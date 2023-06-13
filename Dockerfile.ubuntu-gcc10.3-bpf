@@ -1,0 +1,24 @@
+FROM ubuntu:jammy
+
+RUN echo 'deb http://archive.ubuntu.com/ubuntu/ jammy-proposed restricted main multiverse universe' > /etc/apt/sources.list.d/ubuntu-proposed.list && \
+	apt-get update && \
+	apt-get -y --no-install-recommends install \
+		cmake \
+		g++-10 \
+		git \
+		kmod \
+		libc6-dev \
+		libelf-dev \
+		make \
+		pkg-config \
+		clang \
+		llvm \
+		&& apt-get clean
+
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 10 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 10
+
+ADD builder-entrypoint.sh /
+WORKDIR /build/probe
+ENTRYPOINT [ "/builder-entrypoint.sh" ]
+

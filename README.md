@@ -1,8 +1,72 @@
 # Running an on-prem probe builder
 
-The probe builder can be used to automatically build kernel modules for [OSS Sysdig](https://github.com/draios/sysdig) as well as the [commercial Sysdig agent](https://sysdig.com/). It can run on any host with Docker installed, including (with some preparation) air-gapped hosts.
+The probe builder can be used to automatically build kernel modules for the [commercial Sysdig agent](https://sysdig.com/). It can run on any host with Docker installed, including (with some preparation) air-gapped hosts.
 
-The description below assumes that we need to build probes for agent 12.0.0 (substitute the version as required) for RHEL/CentOS kernels. Whenever kernel packages are mentioned, it means kernel-VERSION.rpm and kernel-devel-VERSION.rpm files (with matching VERSION). A similar process can be used for Ubuntu kernels (linux-image-VERSION.deb, linux-headers-VERSION.deb and possibly others) with the -k CustomUbuntu option in place of -k CustomCentOS.
+The description below assumes that we need to build probes for:
+* agent 12.0.0 (substitute the version as required)
+* for RedHat/CentOS kernels
+  * for Ubuntu kernels use -k CustomUbuntu option instead of -k CustomCentOS
+  * for Debian kernels use -k CustomDebian option instead of -k CustomCentOS
+
+## Prerequisites
+
+### Downloading kernel packages
+
+To prebuild probes for a particular kernel, you need the headers package for that particular kernel, along
+with its dependencies.
+
+For RedHat-like OSes (RHEL, CentOS, Fedora, etc.), the required packages are usually:
+* `kernel-<VERSION>.rpm`
+* `kernel-devel-<VERSION>.rpm`
+* `kernel-core-<VERSION>.rpm` (if present)
+
+For Debian-like OSes (Debian, Ubuntu, etc.), the required packages are usually:
+* `linux-image-<VERSION>.deb`
+* `linux-headers-<VERSION>.deb`
+
+But please note that the set of required packages varies across distributions and versions, so providing
+an exhaustive list is not possible here.
+
+You can use the crawler functionality to determine the set of packages for a particular kernel.
+To use it, pass a distribution name (one of the following) and, optionally, the specific kernel version
+or its subset.
+
+The output is a list of URLs directly to the kernel packages. For example, to download all the packages
+needed to build the CentOS 4.18.0-305.10.2.el8\_4 kernel, you can run:
+
+    # docker run (...) -C CentOS 4.18.0-305.10.2.el8_4 | grep '^ ' | xargs wget -c
+    (...)
+    # ls -la
+    total 61556
+    drwxr-xr-x 2 root root     4096 Aug 12 15:55 .
+    drwxr-xr-x 9 root root     4096 Aug 12 15:53 ..
+    -rw-r--r-- 1 root root  6169556 Jul 20 21:12 kernel-4.18.0-305.10.2.el8_4.x86_64.rpm
+    -rw-r--r-- 1 root root 37552272 Jul 20 21:12 kernel-core-4.18.0-305.10.2.el8_4.x86_64.rpm
+    -rw-r--r-- 1 root root 19290066 Aug 12 15:55 kernel-devel-4.18.0-305.10.2.el8_4.x86_64.rpm
+
+Then you can pass the directory containing the kernel files to the probe builder container
+(`/directory-containing-kernel-packages/` in the examples below).
+
+Distributions supported by the kernel crawler:
+ - AliyunLinux 2 (Alibaba Cloud Linux 2)
+ - AliyunLinux 3 (Alibaba Cloud Linux 3)
+ - AlmaLinux
+ - AmazonLinux
+ - AmazonLinux2
+ - CentOS
+ - CentOS Stream (8 and 9)
+ - Debian
+ - Fedora
+ - Flatcar
+ - Oracle6
+ - Oracle7
+ - Oracle8
+ - PhotonOS
+ - RockyLinux
+ - Ubuntu
+
+Please note that you do *not* need to extract or install the kernel packages on the build host.
+The probe builder works on package files directly and extracts them internally.
 
 ## With internet access
 
@@ -21,7 +85,7 @@ docker run --rm \
   -v /a-directory-with-some-free-space/:/workspace \
   -v $(pwd)/agent-libs:/sysdig \
   -v /directory-containing-kernel-packages/:/kernels \
-  sysdig-probe-builder:latest -- \
+  sysdig-probe-builder:latest -B -- \
   -p sysdigcloud-probe -v 12.0.0 -k CustomCentOS
 ```
 

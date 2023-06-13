@@ -6,8 +6,11 @@ RUN apt-get update && apt-get -y --no-install-recommends install \
 	git \
 	kmod \
 	libc6-dev \
+	libelf-dev \
 	make \
 	pkg-config \
+	clang \
+	llvm \
 	&& apt-get clean
 
 ADD builder-entrypoint.sh /
