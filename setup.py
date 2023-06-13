@@ -18,6 +18,7 @@ setup(name='probe_builder',
           'console_scripts': [
               'probe_builder = probe_builder:cli',
               'artifactory_download = probe_builder.artifactory_download:cli',
+#              'download_rhel = download_rhel_headers.download_headers:cli',
           ],
       },
       )

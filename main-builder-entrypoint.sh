@@ -89,6 +89,16 @@ download_from_artifactory()
 	artifactory_download "$@"
 }
 
+redhat_download()
+{
+	#cd /kernels
+	#download_rhel "$@"
+	cd /builder/download_rhel_headers
+	python3 download_headers.py "$@"
+}
+
+
+
 crawl()
 {
 	probe_builder ${DEBUG_PREFIX} crawl "$@"
@@ -96,7 +106,9 @@ crawl()
 
 BUILDER_IMAGE_PREFIX=
 DEBUG_PREFIX=
-while getopts ":Ab:BCdP" opt
+OP=none
+
+while getopts ":Ab:BCdPR" opt
 do
 	case "$opt" in
 		A)
@@ -117,6 +129,9 @@ do
 		P)
 			OP=prepare
 			;;
+		R)
+			OP=redhat_download
+			;;
 		\?)
 			echo "Invalid option $OPTARG" >&2
 			echo "Did you mean to pass it to the probe builder? Add -- before" >&2
@@ -136,6 +151,9 @@ shift $((OPTIND - 1))
 case "${OP:-}" in
 	download_from_artifactory)
 		download_from_artifactory "$@"
+		;;
+	redhat_download)
+		redhat_download "$@"
 		;;
 	build)
 		build_probes "$@"
