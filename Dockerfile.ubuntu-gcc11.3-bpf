@@ -1,7 +1,7 @@
 FROM ubuntu:jammy
 
 RUN for pkg in g++-11 gcc-11 cpp-11 gcc-11-base libgcc-11-dev libasan6 libtsan0 libobjc-11-dev libstdc++-11-dev; do \
-	echo "Package: $pkg\nPin: version 11.2.*\nPin-Priority: 900\n" \
+	echo "Package: $pkg\nPin: version 11.3.*\nPin-Priority: 900\n" \
 	>> /etc/apt/preferences.d/pin-gcc; done
 RUN \
 	apt-get update && \
