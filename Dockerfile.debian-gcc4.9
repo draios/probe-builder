@@ -1,6 +1,9 @@
 FROM debian/eol:jessie
 
-RUN apt-get update && apt-get -y --no-install-recommends install \
+RUN sed -i -e 's/deb.debian.org/archive.debian.org\/debian-archive/g' /etc/apt/sources.list && \
+    sed -i -e 's/security.debian.org/archive.debian.org\/debian-archive/g' /etc/apt/sources.list && \
+    sed -i '/jessie-updates/d' /etc/apt/sources.list && \
+    apt-get update && apt-get -y --no-install-recommends install \
 	cmake \
 	g++ \
 	git \
