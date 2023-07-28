@@ -77,10 +77,10 @@ build_probes()
 	probe_builder ${DEBUG_PREFIX} build -s /sysdig -b "$BUILDER_IMAGE_PREFIX" "$@" /kernels/*
 }
 
-prepare_builders()
+prebuild_builders()
 {
 	check_docker_socket
-	for i in Dockerfile.* ; do docker build -t ${BUILDER_IMAGE_PREFIX}sysdig-probe-builder:${i#Dockerfile.} -f $i . ; done
+	probe_builder ${DEBUG_PREFIX} prebuild -b "$BUILDER_IMAGE_PREFIX" "$@"
 }
 
 download_from_artifactory()
@@ -115,7 +115,7 @@ do
 			DEBUG_PREFIX="--debug"
 			;;
 		P)
-			OP=prepare
+			OP=prebuild
 			;;
 		\?)
 			echo "Invalid option $OPTARG" >&2
@@ -143,8 +143,8 @@ case "${OP:-}" in
 	crawl)
 		crawl "$@"
 		;;
-	prepare)
-		prepare_builders
+	prebuild)
+		prebuild_builders "$@"
 		;;
 	*)
 		usage

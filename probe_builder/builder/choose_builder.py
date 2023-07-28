@@ -50,6 +50,11 @@ def choose_distro_dockerfile(builder_source, _builder_distro, kernel_dir):
         fn = m[0]
         return fn, distro_tag, fn.endswith("-bpf")
 
+def all_dockerfiles(builder_source):
+    prefix = "Dockerfile."
+    return [
+        (f, f.replace(prefix,'')) for f in os.listdir(builder_source) if f.startswith(prefix)
+    ]
 
 def get_kernel_gcc_version(kernel_dir):
     # Try to find the gcc version used to build this particular kernel
