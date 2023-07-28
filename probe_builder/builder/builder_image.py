@@ -15,6 +15,10 @@ logger = logging.getLogger(__name__)
 builders = {}
 builders_lock = threading.Lock()
 
+def prebuild(context_dir, image_prefix, dockerfile, dockerfile_tag, arch):
+    image_name = '{}sysdig-probe-builder:{}'.format(image_prefix, dockerfile_tag)
+    docker.build(arch, image_name, dockerfile, context_dir)
+
 def build(workspace, dockerfile, dockerfile_tag):
     with builders_lock:
         k = (dockerfile, dockerfile_tag)

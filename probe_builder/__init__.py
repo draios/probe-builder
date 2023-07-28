@@ -107,6 +107,17 @@ def cli(debug):
 
 @click.command()
 @click.option('-b', '--builder-image-prefix', default='')
+@click.option('-m', '--machine', default=os.uname().machine)
+def prebuild(builder_image_prefix, machine):
+    builder_source = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    arch = kernel_crawler.repo.machine2arch(machine)
+    all_dockerfiles_and_tags = choose_builder.all_dockerfiles(builder_source=builder_source)
+    context_dir = os.getcwd()
+    for dockerfile, dockerfile_tag in all_dockerfiles_and_tags:
+        builder_image.prebuild(context_dir, builder_image_prefix, dockerfile, dockerfile_tag, arch)
+
+@click.command()
+@click.option('-b', '--builder-image-prefix', default='')
 @click.option('-d', '--download-concurrency', type=click.INT, default=1)
 @click.option('-j', '--jobs', type=click.INT, default=len(os.sched_getaffinity(0)))
 @click.option('-k', '--kernel-type', type=click.Choice(sorted(CLI_DISTROS.keys())))
@@ -208,6 +219,7 @@ def crawl(distro, distro_filter='', kernel_filter=''):
             print(' {}'.format(pkg))
 
 
+cli.add_command(prebuild, 'prebuild')
 cli.add_command(build, 'build')
 cli.add_command(crawl, 'crawl')
 
