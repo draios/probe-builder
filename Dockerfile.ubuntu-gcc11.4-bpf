@@ -1,0 +1,34 @@
+FROM ubuntu:jammy
+
+RUN for pkg in g++-11 gcc-11 cpp-11 gcc-11-base libgcc-11-dev libasan6 libtsan0 libobjc-11-dev libstdc++-11-dev; do \
+	echo "Package: $pkg\nPin: version 11.4.*\nPin-Priority: 900\n" \
+	>> /etc/apt/preferences.d/pin-gcc; done
+RUN \
+	apt-get update && \
+	apt-get -y --no-install-recommends install \
+		cmake \
+		g++-11 \
+		git \
+		kmod \
+		libc6-dev \
+		libelf-dev \
+		make \
+		pkg-config \
+		clang-14 \
+		llvm-14 \
+		&& apt-get clean
+
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11
+
+# Enforce usage of clang 14, since clang 15 seems to
+# raise a lot of verifier issues
+# Notice how at the time of writing clang would just
+# link to clang-14 (as opposed to kinetic which has
+# apparently migrated to clang-15)
+ENV CLANG clang-14
+ENV LLC llc-14
+
+ADD builder-entrypoint.sh /
+WORKDIR /build/probe
+ENTRYPOINT [ "/builder-entrypoint.sh" ]
+
