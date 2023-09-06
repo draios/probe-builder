@@ -1,0 +1,19 @@
+FROM debian:trixie
+
+RUN apt-get update && apt-get -y --no-install-recommends install \
+	cmake \
+	g++-13 \
+	git \
+	kmod \
+	libc6-dev \
+	libelf-dev \
+	make \
+	pkg-config \
+	clang \
+	llvm \
+	&& apt-get clean
+
+ADD builder-entrypoint.sh /
+WORKDIR /build/probe
+ENTRYPOINT [ "/builder-entrypoint.sh" ]
+
