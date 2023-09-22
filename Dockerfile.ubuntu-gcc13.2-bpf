@@ -1,0 +1,26 @@
+FROM ubuntu:mantic
+
+RUN echo 'deb http://archive.ubuntu.com/ubuntu/ mantic-proposed restricted main multiverse universe' > /etc/apt/sources.list.d/ubuntu-proposed.list && \
+	apt-get update && \
+	apt-get -y --no-install-recommends install \
+		cmake \
+		g++ \
+		git \
+		kmod \
+		libc6-dev \
+		libelf-dev \
+		make \
+		pkg-config \
+		clang-14 \
+		llvm-14 \
+		&& apt-get clean
+
+# Enforce usage of clang 14, since clang 15 seems to
+# raise a lot of verifier issues
+ENV CLANG clang-14
+ENV LLC llc-14
+
+ADD builder-entrypoint.sh /
+WORKDIR /build/probe
+ENTRYPOINT [ "/builder-entrypoint.sh" ]
+
