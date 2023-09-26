@@ -15,8 +15,9 @@ pp = pprint.PrettyPrinter(depth=4)
 
 class DebianBuilder(DistroBuilder):
     KERNEL_VERSION_RE = re.compile(r'-(?P<version>[0-9]\.[0-9]+\.[0-9]+(-[^-]+)?)-(?P<vararch>[a-z0-9-]+)_')
-    KBUILD_PACKAGE_RE = re.compile(r'linux-kbuild-(?P<major>[0-9]\.[0-9]+)_')
-
+    KBUILD_PACKAGE_RE = re.compile(r'linux-kbuild-(?P<version>[0-9]\.[0-9]+(\.[0-9]+-[^-]+)?)_')
+    #  linux-kbuild-3.10_pkgver                              |  3   . 10  |     optional ^
+    #  linux-kbuild-6.5.0-0_pkgver                           |  6   . 5     . 0    - 0     |
 
     def crawl(self, workspace, distro, crawler_distro, download_config=None, crawler_filter=EMPTY_FILTER):
         # for debian, we essentially want to discard the classification work performed by the crawler,
@@ -128,7 +129,7 @@ class DebianBuilder(DistroBuilder):
                 if not m:
                     click.echo("Filename {} doesn't look like a kbuild package (no version)".format(deb), err=True)
                     continue
-                kbuild_packages[m.group('major')] = deb
+                kbuild_packages[m.group('version')] = deb
                 continue
 
             m = self.KERNEL_VERSION_RE.search(deb_basename)
@@ -164,9 +165,13 @@ class DebianBuilder(DistroBuilder):
         for version, per_vararch in arch_packages.items():
             for vararch, packages in per_vararch.items():
                 packages.extend(common_packages.get(version, []))
-                major, minor, _ = version.split('.', 2)
-                major_version = '{}.{}'.format(major, minor)
-                kbuild_pkg = kbuild_packages.get(major_version)
+                # For kbuild, first try with full version, e.g. 6.5.0-0
+                kbuild_pkg = kbuild_packages.get(version)
+                # If not found, fall back to minor version, e.g. 6.0
+                if not kbuild_pkg:
+                    major, minor, _ = version.split('.', 2)
+                    minor_version = '{}.{}'.format(major, minor)
+                    kbuild_pkg = kbuild_packages.get(minor_version)
                 if kbuild_pkg:
                     packages.append(kbuild_pkg)
                 kernels['{}:{}'.format(version, vararch)] = packages
