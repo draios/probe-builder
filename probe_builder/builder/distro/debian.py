@@ -48,23 +48,29 @@ class DebianBuilder(DistroBuilder):
     def unpack_kernels(self, workspace, distro, kernels):
         kernel_dirs = list()
 
-        for release, debs in kernels.items():
-            # we can no longer use '-' as the separator, since now also have variant
-            # (e.g. cloud-amd64)
-            version, vararch = release.rsplit(':', 1)
-            # restore the original composite e.g. 5.16.0-1-cloud-amd64
-            release = release.replace(':', '-')
-
-            target = workspace.subdir('build', distro, version)
-
+        def unpack_release_packages(release, target, debs):
             try:
                 for deb in debs:
                     deb_basename = os.path.basename(deb)
                     marker = os.path.join(target, '.' + deb_basename)
                     toolkit.unpack_deb(workspace, deb, target, marker)
+                # FIXME here we should probably just return success, and have the future handle this
                 kernel_dirs.append((release, target))
             except:
                 traceback.print_exc()
+
+        # unpack packages in parallel
+        with self.executor as executor:
+            for release, debs in kernels.items():
+                # we can no longer use '-' as the separator, since now also have variant
+                # (e.g. cloud-amd64)
+                version, vararch = release.rsplit(':', 1)
+                # restore the original composite e.g. 5.16.0-1-cloud-amd64
+                release = release.replace(':', '-')
+
+                target = workspace.subdir('build', distro, version)
+                logger.debug("Scheduling unpacking for {}".format(version))
+                executor.submit(unpack_release_packages, release, target, debs)
 
         for release, target in kernel_dirs:
             kerneldir = self.get_kernel_dir(workspace, release, target)

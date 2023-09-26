@@ -62,7 +62,7 @@ class FlatcarBuilder(DistroBuilder):
             logger.info('Skipping build of {} probe {}-{} ({}): {}'.format(label, coreos_kernel_release, config_hash,
                                                                            release, skip_reason))
 
-        docker.rm(container_name)
+        #docker.rm(container_name)
         try:
             builder_image.run(workspace, probe, kernel_dir, coreos_kernel_release, config_hash, container_name, image_name, args)
         except subprocess.CalledProcessError:
