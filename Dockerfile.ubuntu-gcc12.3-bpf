@@ -1,7 +1,7 @@
-FROM ubuntu:lunar
+FROM ubuntu:jammy
 
 RUN for pkg in g++-12 gcc-12 cpp-12 gcc-12-base libgcc-12-dev libasan6 libtsan0 libobjc-12-dev libstdc++-12-dev; do \
-	echo "Package: $pkg\nPin: version 12.2.*\nPin-Priority: 900\n" \
+	echo "Package: $pkg\nPin: version 12.3.*\nPin-Priority: 900\n" \
 	>> /etc/apt/preferences.d/pin-gcc; done
 RUN \
 	apt-get update && \
@@ -22,6 +22,9 @@ RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 12
 
 # Enforce usage of clang 14, since clang 15 seems to
 # raise a lot of verifier issues
+# Notice how at the time of writing clang would just
+# link to clang-14 (as opposed to kinetic which has
+# apparently migrated to clang-15)
 ENV CLANG clang-14
 ENV LLC llc-14
 
