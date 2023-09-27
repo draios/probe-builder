@@ -62,8 +62,16 @@ class DebianBuilder(DistroBuilder):
                     deb_basename = os.path.basename(deb)
                     marker = os.path.join(target, '.' + deb_basename)
                     toolkit.unpack_deb(workspace, deb, target, marker)
+
+                    if not os.path.exists(deb):
+                        raise FileNotFoundError("{} is missing".format(deb))
+
+                    if not os.path.isfile(deb):
+                        raise IsADirectoryError("{} is not a file".format(deb))
+
                 kernel_dirs.append((release, target))
             except:
+                logger.error("release={}".format(release))
                 traceback.print_exc()
 
         for release, target in kernel_dirs:
