@@ -2,7 +2,7 @@ FROM debian:bookworm
 
 RUN apt-get update && apt-get -y --no-install-recommends install \
 	cmake \
-	g++-11 \
+	g++-12 \
 	git \
 	kmod \
 	libc6-dev \
