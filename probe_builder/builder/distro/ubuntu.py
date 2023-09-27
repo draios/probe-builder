@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import traceback
 import pprint
 
 import click
@@ -38,31 +39,43 @@ class UbuntuBuilder(DistroBuilder):
             # only validate that it is so
             version = None
 
-            for deb in debs:
-                deb_basename = os.path.basename(deb)
-                m = self.KERNEL_VERSION_RE.search(deb_basename)
-                if not m:
-                    raise ValueError("{} doesn't look like a kernel package".format(deb))
-                if version is None:
-                    version = (m.group('version'), m.group('update'))
-                else:
-                    new_version = (m.group('version'), m.group('update'))
-                    if version[0] != new_version[0] and not new_version[1].startswith(version[1]):
-                        raise ValueError("Unexpected version {}/{} from package {} (expected {}/{})".format(
-                            new_version[0], new_version[1], deb,
-                            version[0], version[1]
-                        ))
-            # extracted files will end up in a directory derived from the version
-            # e.g. 5.4.0-1063/66
-            target = workspace.subdir('build', distro, version[0], version[1])
-            # which we will address by release
-            # ( '5.4.0-1063-aws', '/path/to/5.4.0-1063/66' )
-            kernel_dirs.append((release, target))
+            try:
+                for deb in debs:
+                    deb_basename = os.path.basename(deb)
+                    m = self.KERNEL_VERSION_RE.search(deb_basename)
+                    if not m:
+                        raise ValueError("{} doesn't look like a kernel package".format(deb))
+                    if version is None:
+                        version = (m.group('version'), m.group('update'))
+                    else:
+                        new_version = (m.group('version'), m.group('update'))
+                        if version[0] != new_version[0] and not new_version[1].startswith(version[1]):
+                            raise ValueError("Unexpected version {}/{} from package {} (expected {}/{})".format(
+                                new_version[0], new_version[1], deb,
+                                version[0], version[1]
+                            ))
 
-            for deb in debs:
-                deb_basename = os.path.basename(deb)
-                marker = os.path.join(target, '.' + deb_basename)
-                toolkit.unpack_deb(workspace, deb, target, marker)
+                    if not os.path.exists(deb):
+                        raise FileNotFoundError("{} is missing".format(deb))
+
+                    if not os.path.isfile(deb):
+                        raise IsADirectoryError("{} is not a file".format(deb))
+
+                # extracted files will end up in a directory derived from the version
+                # e.g. 5.4.0-1063/66
+                target = workspace.subdir('build', distro, version[0], version[1])
+                # which we will address by release
+                # ( '5.4.0-1063-aws', '/path/to/5.4.0-1063/66' )
+
+                for deb in debs:
+                    deb_basename = os.path.basename(deb)
+                    marker = os.path.join(target, '.' + deb_basename)
+                    toolkit.unpack_deb(workspace, deb, target, marker)
+
+                kernel_dirs.append((release, target))
+            except:
+                logger.error("release={}".format(release))
+                traceback.print_exc()
 
         return kernel_dirs
 
