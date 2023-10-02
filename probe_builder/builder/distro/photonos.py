@@ -22,8 +22,8 @@ class PhotonosBuilder(CentosBuilder):
         )
         # make up a new list with stripped release version
         renamed = {}
-        for release, urls in orig.items():
-            renamed[self.strip_release(release)] = urls
+        for (drel, krel), urls in orig.items():
+            renamed[(drel,self.strip_release(krel))] = urls
         return renamed
 
     def get_kernel_dir(self, workspace, release, target):

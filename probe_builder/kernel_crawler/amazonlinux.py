@@ -18,7 +18,7 @@ def get_al_repo(repo_root, repo_release):
     return make_string(resp.splitlines()[0]).rstrip('/') + '/'
 
 
-class AmazonLinux1Mirror(repo.Distro):
+class AmazonLinux1Mirror(repo.Mirror):
     AL1_REPOS = [
         'latest/updates',
         'latest/main',
@@ -39,7 +39,7 @@ class AmazonLinux1Mirror(repo.Distro):
         return [rpm.RpmRepository(url) for url in sorted(repo_urls)]
 
 
-class AmazonLinux2Mirror(repo.Distro):
+class AmazonLinux2Mirror(repo.Mirror):
     AL2_REPOS = [
         'core/2.0',
         'core/latest',
@@ -55,7 +55,7 @@ class AmazonLinux2Mirror(repo.Distro):
                 repo_urls.add(get_al_repo("http://amazonlinux.us-east-1.amazonaws.com/2/", r + '/' + crawler_filter.machine))
         return [rpm.RpmRepository(url) for url in sorted(repo_urls)]
 
-class AmazonLinux2022Mirror(repo.Distro):
+class AmazonLinux2022Mirror(repo.Mirror):
 
     # This was obtained by running
     # docker run -it --rm amazonlinux:2022 python3 -c 'import dnf, json; db = dnf.dnf.Base(); print(json.dumps(db.conf.substitutions, indent=2))'

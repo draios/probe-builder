@@ -20,6 +20,7 @@ class UbuntuBuilder(DistroBuilder):
     def crawl(self, workspace, distro, crawler_distro, download_config=None, crawler_filter=EMPTY_FILTER):
         crawled_dict = super().crawl(workspace=workspace, distro=distro, crawler_distro=crawler_distro, download_config=download_config, crawler_filter=crawler_filter)
         kernels = []
+        logger.debug("crawled_dict={}".format(crawled_dict))
         # batch packages according to package version, e.g. '5.15.0-1001/1' as returned by the crawler
         # (which is the package version of the main 'linux-headers-5.15.0-1001-gke_5.15.0-1001.1_amd64.deb')
         # each of those versions may yield one or more releases e.g. '5.15.0-1001-gke'
@@ -172,11 +173,12 @@ class UbuntuBuilder(DistroBuilder):
         #]
 
         for version, release_ids in version_to_releases.items():
+            drel, kver = version
             for release_id in release_ids:
                 release_files = releases[(release_id, version)]
                 # add all the shared files that end up in the same directory
                 release_files.extend(version_files.get(version, []))
-                kernels.append((release_id, release_files))
+                kernels.append(((drel, release_id), release_files))
 
         logger.debug("kernels=\n{}".format(pp.pformat(kernels)))
         return kernels

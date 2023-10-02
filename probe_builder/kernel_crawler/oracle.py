@@ -11,7 +11,7 @@ class OracleRepository(rpm.RpmRepository):
         return '''(name IN ('kernel', 'kernel-devel', 'kernel-uek', 'kernel-uek-devel') AND arch IN ('x86_64', 'aarch64'))'''
 
 
-class Oracle6Mirror(repo.Distro):
+class Oracle6Mirror(repo.Mirror):
     OL6_REPOS = [
         'http://yum.oracle.com/repo/OracleLinux/OL6/latest/{}/',
         'http://yum.oracle.com/repo/OracleLinux/OL6/MODRHCK/{}/',
@@ -24,7 +24,7 @@ class Oracle6Mirror(repo.Distro):
         return [OracleRepository(url.format(crawler_filter.machine)) for url in self.OL6_REPOS]
 
 
-class Oracle7Mirror(repo.Distro):
+class Oracle7Mirror(repo.Mirror):
     OL7_REPOS = [
         'http://yum.oracle.com/repo/OracleLinux/OL7/latest/{}/',
         'http://yum.oracle.com/repo/OracleLinux/OL7/MODRHCK/{}/',
@@ -38,7 +38,7 @@ class Oracle7Mirror(repo.Distro):
         return [OracleRepository(url.format(crawler_filter.machine)) for url in self.OL7_REPOS]
 
 
-class Oracle8Mirror(repo.Distro):
+class Oracle8Mirror(repo.Mirror):
     OL8_REPOS = [
         'http://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/{}/',
         'http://yum.oracle.com/repo/OracleLinux/OL8/UEKR6/{}/',
@@ -49,7 +49,7 @@ class Oracle8Mirror(repo.Distro):
         return [OracleRepository(url.format(crawler_filter.machine)) for url in self.OL8_REPOS]
 
 
-class Oracle9Mirror(repo.Distro):
+class Oracle9Mirror(repo.Mirror):
     OL9_REPOS = [
         'http://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/{}/',
         'http://yum.oracle.com/repo/OracleLinux/OL9/appstream/{}/',

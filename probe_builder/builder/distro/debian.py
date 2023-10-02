@@ -20,18 +20,44 @@ class DebianBuilder(DistroBuilder):
     #  linux-kbuild-6.5.0-0_pkgver                           |  6   . 5     . 0    - 0     |
 
     def crawl(self, workspace, distro, crawler_distro, download_config=None, crawler_filter=EMPTY_FILTER):
-        # for debian, we essentially want to discard the classification work performed by the crawler,
-        # and batch packages together
+        # for debian, we essentially want to discard some of the classification work performed by the crawler
+        # which will return a list of packages found in a given distro release and having a particular package version
+        # ('bullseye', '6.1.38-4~bpo11+1'): ['/workspace/debian/linux-kbuild-6.1_6.1.38-4~bpo11+1_amd64.deb',
+        #                             '/workspace/debian/linux-headers-6.1.0-0.deb11.11-common-rt_6.1.38-4~bpo11+1_all.deb',
+        #                             '/workspace/debian/linux-image-6.1.0-0.deb11.11-rt-amd64_6.1.38-4~bpo11+1_amd64.deb',
+        #                             '/workspace/debian/linux-image-6.1.0-0.deb11.11-cloud-amd64_6.1.38-4~bpo11+1_amd64.deb',
+        #                             '/workspace/debian/linux-image-6.1.0-0.deb11.11-amd64_6.1.38-4~bpo11+1_amd64.deb',
+        #                             '/workspace/debian/linux-headers-6.1.0-0.deb11.11-cloud-amd64_6.1.38-4~bpo11+1_amd64.deb',
+        #                             '/workspace/debian/linux-headers-6.1.0-0.deb11.11-rt-amd64_6.1.38-4~bpo11+1_amd64.deb',
+        #                             '/workspace/debian/linux-headers-6.1.0-0.deb11.11-amd64_6.1.38-4~bpo11+1_amd64.deb',
+        #                             '/workspace/debian/linux-headers-6.1.0-0.deb11.11-common_6.1.38-4~bpo11+1_all.deb']}
+        # And essentially we want to build a dictionary based on distro release and kernel release (drel, krel):
+        # {('bullseye', '6.1.0-0.deb11.11:amd64'): ['/workspace/debian/linux-image-6.1.0-0.deb11.11-amd64_6.1.38-4~bpo11+1_amd64.deb',
+        #                                   '/workspace/debian/linux-headers-6.1.0-0.deb11.11-amd64_6.1.38-4~bpo11+1_amd64.deb',
+        #                                   '/workspace/debian/linux-headers-6.1.0-0.deb11.11-common-rt_6.1.38-4~bpo11+1_all.deb',
+        #                                   '/workspace/debian/linux-headers-6.1.0-0.deb11.11-common_6.1.38-4~bpo11+1_all.deb',
+        #                                   '/workspace/debian/linux-kbuild-6.1_6.1.38-4~bpo11+1_amd64.deb'],
+        #  ('bullseye', '6.1.0-0.deb11.11:cloud-amd64'): ['/workspace/debian/linux-image-6.1.0-0.deb11.11-cloud-amd64_6.1.38-4~bpo11+1_amd64.deb',
+        #                                         '/workspace/debian/linux-headers-6.1.0-0.deb11.11-cloud-amd64_6.1.38-4~bpo11+1_amd64.deb',
+        #                                         '/workspace/debian/linux-headers-6.1.0-0.deb11.11-common-rt_6.1.38-4~bpo11+1_all.deb',
+        #                                         '/workspace/debian/linux-headers-6.1.0-0.deb11.11-common_6.1.38-4~bpo11+1_all.deb',
+        #                                         '/workspace/debian/linux-kbuild-6.1_6.1.38-4~bpo11+1_amd64.deb'],
+        #  ('bullseye', '6.1.0-0.deb11.11:rt-amd64'): ['/workspace/debian/linux-image-6.1.0-0.deb11.11-rt-amd64_6.1.38-4~bpo11+1_amd64.deb',
+        #                                      '/workspace/debian/linux-headers-6.1.0-0.deb11.11-rt-amd64_6.1.38-4~bpo11+1_amd64.deb',
+        #                                      '/workspace/debian/linux-headers-6.1.0-0.deb11.11-common-rt_6.1.38-4~bpo11+1_all.deb',
+        #                                      '/workspace/debian/linux-headers-6.1.0-0.deb11.11-common_6.1.38-4~bpo11+1_all.deb',
+        #                                      '/workspace/debian/linux-kbuild-6.1_6.1.38-4~bpo11+1_amd64.deb']}
 
         # call the parent's method
         crawled_dict = super().crawl(workspace=workspace, distro=distro,
             crawler_distro=crawler_distro, download_config=download_config,
             crawler_filter=crawler_filter)
+        logger.debug("crawled_dict=\n{}".format(pp.pformat(crawled_dict)))
 
-        # flatten that dictionary into a single list, retaining ONLY package urls and discarding the release altogether
-        flattened_packages = [pkg for pkgs in crawled_dict.values() for pkg in pkgs]
-        # then we batch that list as if it were a local distro
-        batched_packages = self.batch_packages(flattened_packages)
+        batched_packages = {}
+        for (drel, _pkgver), pkgs in crawled_dict.items():
+            _batched_packages = self.batch_packages(pkgs)
+            batched_packages.update({(drel, krel): relpkgs for krel, relpkgs in _batched_packages.items()})
 
         logger.debug("batched_packages=\n{}".format(pp.pformat(batched_packages)))
         return batched_packages
@@ -48,12 +74,12 @@ class DebianBuilder(DistroBuilder):
     def unpack_kernels(self, workspace, distro, kernels):
         kernel_dirs = list()
 
-        for release, debs in kernels.items():
+        for ((drel,krel), debs) in kernels.items():
             # we can no longer use '-' as the separator, since now also have variant
             # (e.g. cloud-amd64)
-            version, vararch = release.rsplit(':', 1)
+            version, vararch = krel.rsplit(':', 1)
             # restore the original composite e.g. 5.16.0-1-cloud-amd64
-            release = release.replace(':', '-')
+            krel = krel.replace(':', '-')
 
             target = workspace.subdir('build', distro, version)
 
@@ -69,17 +95,17 @@ class DebianBuilder(DistroBuilder):
                     if not os.path.isfile(deb):
                         raise IsADirectoryError("{} is not a file".format(deb))
 
-                kernel_dirs.append((release, target))
+                kernel_dirs.append(((drel,krel), target))
             except:
-                logger.error("release={}".format(release))
+                logger.error("release={}".format(krel))
                 traceback.print_exc()
 
-        for release, target in kernel_dirs:
-            kerneldir = self.get_kernel_dir(workspace, release, target)
+        for (drel,krel), target in kernel_dirs:
+            kerneldir = self.get_kernel_dir(workspace, krel, target)
 
             base_path = workspace.subdir(target)
-            self._reparent_link(base_path, release, 'build')
-            self._reparent_link(base_path, release, 'source')
+            self._reparent_link(base_path, krel, 'build')
+            self._reparent_link(base_path, krel, 'source')
 
             makefile = os.path.join(kerneldir, 'Makefile')
             # we're no longer using the `Makefile.sysdig-orig` guard file
