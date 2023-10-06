@@ -20,7 +20,7 @@ CrawlerFilter = namedtuple("CrawlerFilter", ["machine", "arch", "distro_filter",
 
 EMPTY_FILTER=CrawlerFilter()
 
-# A repo.Repository is a collection of packages, implmemented through .get_package_tree()
+# A repo.Repository is a collection of packages, implemented through .get_package_tree()
 #
 # A repo.Mirror is a collection of repositories, returned by .list_repos()
 #  TODO: should the Mirror be a subclass of Repository since it also implements get_package_tree?
