@@ -34,6 +34,9 @@ class DebRepository(repo.Repository):
     def __str__(self):
         return self.repo_base + self.repo_name
 
+    def __repr__(self):
+        return self.repo_base + self.repo_name
+
     @classmethod
     def scan_packages(cls, stream):
         """
@@ -195,7 +198,7 @@ class DebRepository(repo.Repository):
         deps = {}
         # that's really really too much
         #logger.debug("packages=\n{}".format(pp.pformat(packages)))
-        logger.debug("package_list=\n{}".format(pp.pformat(package_list)))
+        #logger.debug("package_list=\n{}".format(pp.pformat(package_list)))
         with click.progressbar(package_list, label='Building dependency tree', file=sys.stderr,
                                item_show_func=repo.to_s) as pkgs:
             for pkg in pkgs:
@@ -210,7 +213,7 @@ class DebRepository(repo.Repository):
                     logger.debug("No dependencies found for {}, pv={}".format(str(pkg), pv))
                     pass
 
-        logger.debug("before pruning, deps=\n{}".format(pp.pformat(deps)))
+        #logger.debug("before pruning, deps=\n{}".format(pp.pformat(deps)))
         for pkg, dep_list in list(deps.items()):
             have_headers = False
             for dep in dep_list:
@@ -218,7 +221,7 @@ class DebRepository(repo.Repository):
                     have_headers = True
             if not have_headers:
                 del deps[pkg]
-        logger.debug("after pruning, deps=\n{}".format(pp.pformat(deps)))
+        #logger.debug("after pruning, deps=\n{}".format(pp.pformat(deps)))
         return deps
 
     def get_package_tree(self, crawler_filter=EMPTY_FILTER):
@@ -238,6 +241,8 @@ class DebMirror(repo.Mirror):
     def __str__(self):
         return self.base_url
 
+    # This will return a map:
+    # 'codename/main/binary-amd64' => DebRepository('http://host.org/main_url', 'codename/main/binary-amd64')
     def scan_repo(self, dist, arch):
         repos = {}
         all_comps = set()
@@ -256,7 +261,7 @@ class DebMirror(repo.Mirror):
             repos[url] = DebRepository(self.base_url, url)
         return repos
 
-    def list_repos(self, crawler_filter):
+    def list_drel_repos(self, crawler_filter):
         dists_url = self.base_url + 'dists/'
         dists = requests.get(dists_url)
         dists.raise_for_status()
@@ -271,18 +276,32 @@ class DebMirror(repo.Mirror):
                  and dist.startswith(crawler_filter.distro_filter)
                  ]
 
-        logger.info("Dists found under {}, filtered by '{}': {}".format(dists_url, crawler_filter.distro_filter, dists))
-        repos = {}
-        with click.progressbar(
-                dists, label='Scanning {}'.format(self.base_url), file=sys.stderr, item_show_func=repo.to_s) as dists:
-            for dist in dists:
-                try:
-                    repos.update(self.scan_repo('dists/{}'.format(dist), crawler_filter.arch))
-                except requests.HTTPError:
-                    pass
-                try:
-                    repos.update(self.scan_repo('dists/{}updates/'.format(dist), crawler_filter.arch))
-                except requests.HTTPError:
-                    pass
+        # Per-drel (distro release) dists
+        drel_dists = {}  # { 'kinetic': ['kinetic', 'kinetic-updates']}
+        drel_repos = {}  # { 'kinetic': [DebRepository(...),DebRepository(...)] }
+        for dist in dists:
+            drel = dist.split('/',1)[0].split('-',1)[0]
+            drel_dists.setdefault(drel, []).append(dist)
 
-        return sorted(repos.values(), key=str)
+        logger.info("Drelease dists found under DebMirror {}, filtered by '{}': {}".format(dists_url, crawler_filter.distro_filter, drel_dists))
+        with click.progressbar(
+                sorted(drel_dists.items()), label='Scanning {}'.format(self.base_url), file=sys.stderr, item_show_func=repo.to_s) as drel_dists_items:
+            for (drel, dists) in drel_dists_items:
+                # Here we are .update()ing a dictionary so to get rid of duplicate paths
+                # which could have been discovered following different ways
+                repos = {} # {'main/updates': DebRepository(...)}
+                for dist in dists:
+                    try:
+                        repos.update(self.scan_repo('dists/{}'.format(dist), crawler_filter.arch))
+                    except requests.HTTPError:
+                        pass
+                    try:
+                        repos.update(self.scan_repo('dists/{}updates/'.format(dist), crawler_filter.arch))
+                    except requests.HTTPError:
+                        pass
+                # Discard the path used as the key (for deduplication) and just flatten into a list of repositories
+                # and then store it in the dict having the drelease as the key
+                drel_repos[drel] = repos.values()
+
+        # This will return a dictionay of related DebRepository objects, keyed by drel (e.g. 'jammy' for ubuntu or 'bullseye' for debian)
+        return drel_repos

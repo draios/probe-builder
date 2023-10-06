@@ -15,10 +15,9 @@ class CentosBuilder(DistroBuilder):
 
     def unpack_kernels(self, workspace, distro, kernels):
         kernel_dirs = list()
-
-        for release, rpms in kernels.items():
-            target = workspace.subdir('build', distro, release)
-            kernel_dirs.append((release, target))
+        for (drel, krel), rpms in kernels.items():
+            target = workspace.subdir('build', distro, krel)
+            kernel_dirs.append(((drel,krel), target))
 
             for rpm in rpms:
                 rpm_basename = os.path.basename(rpm)

@@ -19,17 +19,19 @@ class PhotonOsRepository(rpm.RpmRepository):
         '''
 
 
-class PhotonOsMirror(repo.Distro):
-    PHOTON_OS_VERSIONS = [
-        ('3.0', '_release'),
-        ('3.0', '_updates'),
-        ('4.0', ''),
-        ('4.0', '_release'),
-        ('4.0', '_updates'),
-    ]
+class PhotonOsMirror(repo.Mirror):
+    PHOTON_OS_VERSIONS = {
+        '3.0': ['_release', '_updates'],
+        '4.0': ['', '_release', '_updates'],
+    }
 
-    def list_repos(self, crawler_filter):
-        return [
-            PhotonOsRepository('https://packages.vmware.com/photon/{v}/photon{r}_{v}_{m}/'.format(
-                v=version, r=repo_tag, m=crawler_filter.machine))
-            for version, repo_tag in self.PHOTON_OS_VERSIONS]
+    def list_drel_repos(self, crawler_filter):
+        return {
+            version: [
+                PhotonOsRepository('https://packages.vmware.com/photon/{v}/photon{r}_{v}_{m}/'.format(
+                    v=version, r=repo_tag, m=crawler_filter.machine))
+                for repo_tag in repo_tags
+            ]
+            for version, repo_tags in self.PHOTON_OS_VERSIONS.items()
+            if version.startswith(crawler_filter.distro_filter)
+        }

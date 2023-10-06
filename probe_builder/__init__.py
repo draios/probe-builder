@@ -71,7 +71,8 @@ class LocalDistro(object):
         self.distro_builder = self.distro_obj.builder()
 
     def get_kernels(self, _workspace, packages, _download_config, _crawler_filter):
-        return self.distro_builder.batch_packages(packages)
+        # For local distros we do not have the concept of a "distro release", so we use ""
+        return {("", krel): pkgs for krel, pkgs in self.distro_builder.batch_packages(packages).items()}
 
 
 CLI_DISTROS = {
@@ -154,29 +155,31 @@ def build(builder_image_prefix,
     with ThreadPoolExecutor(max_workers=jobs) as executor:
         kernels_futures = []
         for release, target in kernel_dirs:
-            future = executor.submit(distro_builder.build_kernel, workspace, probe, distro.builder_distro, release, target)
+            drel, krel = release if type(release) is tuple else ("", release)
+            future = executor.submit(distro_builder.build_kernel, workspace, probe, distro.builder_distro, krel, target)
             kernels_futures.append((release, future))
 
 
     print("List of analyzed kernels:")
-    fstr = "|{:<45}|{:<10}|{:<10}|"
-    l = fstr.format("Kernel", "kmod", "ebpf")
+    fstr = "|{:<10}|{:<45}|{:<10}|{:<10}|"
+    l = fstr.format("Distro", "Kernel", "kmod", "ebpf")
     print("-" * len(l))
     print(l)
     print("-" * len(l))
 
     failed = 0
     for release, future in kernels_futures:
+        drel, krel = release if type(release) is tuple else ("", release)
         try:
             res = future.result()
             if res.failed():
                 failed += 1
-            print(fstr.format(release,
+            print(fstr.format(drel, krel,
                 res.kmod_result.build_result_string(),
                 res.ebpf_result.build_result_string()))
         except:
             failed += 1
-            print(fstr.format(release, "EXCEPTION", "EXCEPTION"))
+            print(fstr.format(drel, krel, "EXCEPTION", "EXCEPTION"))
 
     print("-" * len(l))
     print("Number of kernels analyzed: {}".format(len(kernels_futures)))
@@ -192,7 +195,8 @@ def build(builder_image_prefix,
             try:
                 res = future.result()
                 if res.failed():
-                    print(fstr.format(release,
+                    drel, krel = release if type(release) is tuple else ("", release)
+                    print(fstr.format(drel, krel,
                         res.kmod_result.build_result_string(),
                         res.ebpf_result.build_result_string()))
             except:

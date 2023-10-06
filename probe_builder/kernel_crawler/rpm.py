@@ -113,7 +113,7 @@ class RpmMirror(repo.Mirror):
             return False
         return True
 
-    def list_repos(self, crawler_filter):
+    def list_drel_repos(self, crawler_filter):
         dists = requests.get(self.base_url)
         dists.raise_for_status()
         dists = dists.content
@@ -130,6 +130,15 @@ class RpmMirror(repo.Mirror):
                 and dist.startswith(crawler_filter.distro_filter)
                 ]
 
-
         logger.info("Dists found under {}, filtered by '{}': {}".format(self.base_url, crawler_filter.distro_filter, fdists))
-        return [RpmRepository(self.dist_url(dist)) for dist in fdists]
+
+        # Grouped dists
+        drel_repos = {}  # { '8': [RpmRepository(...),RpmRepository(...)] }
+        for dist in fdists:
+            # First, remove "/" suffix, if any
+            # Then, remove .x suffix, if any so that 8, 8.1, 8.2 all end up under '8' (which is normally an alias for the latest 8.x)
+            # This way, we avoid crawling the latest 8.x twice (once for "8" and once for "8.x")
+            drel = dist.split('/',1)[0].split('.',1)[0]
+            drel_repos.setdefault(drel, []).append(RpmRepository(self.dist_url(dist)))
+
+        return drel_repos
