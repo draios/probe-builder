@@ -1,0 +1,30 @@
+name: Validate Agent Blacklist yaml file
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+    paths:
+      - probe_builder/builder/blacklist.schema.json
+      - agent_blacklist.yaml
+  pull_request:
+    paths:
+      - probe_builder/builder/blacklist.schema.json
+      - agent_blacklist.yaml
+
+jobs:
+  build:
+    name: Validate agent-blacklist
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate agent_blacklist.yaml file against the schema
+        id: validate-agent-blacklist-yaml
+        uses: GrantBirki/json-yaml-validate@v2.3.0
+        with:
+          json_schema: probe_builder/builder/blacklist.schema.json
+          yaml_as_json: true
+          files: |
+            agent_blacklist.yaml

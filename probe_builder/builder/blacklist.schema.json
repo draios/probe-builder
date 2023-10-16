@@ -1,0 +1,66 @@
+{
+  "title": "Blacklist",
+  "type": "object",
+  "properties": {
+    "matchers": {
+      "type": "object",
+      "description": "list of matches",
+      "default": []
+    },
+    "blacklists": {
+      "type": "array",
+      "description": "blacklist",
+      "items": {
+        "$ref": "#/$defs/BlacklistEntry"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "matchers",
+    "blacklists"
+  ],
+  "$defs": {
+    "BlacklistEntry": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "description": "Description of the blacklist item",
+          "type": "string",
+          "default": ""
+        },
+        "matcher": {
+          "description": "id of one of the matchers listed under [matchers]",
+          "type": "string"
+        },
+        "probe_versions": {
+          "description": "list of probe versions to which this blacklist should be applied",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "probe_kinds": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "kmod",
+              "legacy_ebpf"
+            ]
+          }
+        },
+        "skip_if": {
+          "type": "string",
+          "description": "Jinja2 expression returning a boolean to determine whether a matching kernel should be skipped"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "matcher",
+        "skip_if"
+      ]
+    }
+  }
+}
