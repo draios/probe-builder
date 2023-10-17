@@ -757,8 +757,16 @@ if [ -v SYSDIG_FORCE_BUILD_PROBE ] && [ -v SYSDIG_FORCE_DOWNLOAD_PROBE ] ; then
 	exit 1
 fi
 
+# Detect and bail on conflicting env vars, first
+if ([ "$SYSDIG_AGENT_DRIVER" = universal_ebpf ] || [ "$SYSDIG_AGENT_DRIVER" = kmod ]) && \
+    [ "${SYSDIG_BPF_PROBE+x}" = x ]; then
+  echo "ERROR: Conflicting values specified for 'SYSDIG_AGENT_DRIVER' and 'SYSDIG_BPF_PROBE' environment variables."
+  exit 1
+elif [ "$SYSDIG_AGENT_DRIVER" = universal_ebpf ]; then
+  # We don't need the kmod for Universal eBPF
+  /sbin/rmmod "$PROBE_NAME"
 # Loads the probe
-if [ -v SYSDIG_BPF_PROBE ] || [ "${1}" = "bpf" ]; then
+elif [ "$SYSDIG_AGENT_DRIVER" = legacy_ebpf ] || [ "${SYSDIG_BPF_PROBE+x}" = x ]; then
 	load_bpf_probe
 else
 	load_kernel_probe
