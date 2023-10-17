@@ -5,7 +5,12 @@
     "matchers": {
       "type": "object",
       "description": "list of matches",
-      "default": []
+      "patternProperties": {
+        "^[a-z_]*$": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
     },
     "ignorelist": {
       "type": "array",
