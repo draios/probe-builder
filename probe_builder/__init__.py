@@ -7,7 +7,7 @@ import click
 
 from probe_builder.kernel_crawler import crawl_kernels, DISTROS
 from . import kernel_crawler, disable_ipv6, git, docker
-from .builder import choose_builder, builder_image, blacklist
+from .builder import choose_builder, builder_image, ignorelist
 from .builder.distro import Distro
 from .context import Context, Workspace, Probe, DownloadConfig
 from concurrent.futures import ThreadPoolExecutor
@@ -130,12 +130,12 @@ def prebuild(builder_image_prefix, machine):
 @click.option('-t', '--download-timeout', type=click.FLOAT)
 @click.option('-v', '--probe-version')
 @click.option('-m', '--machine', default=os.uname().machine)
-@click.option('-l', '--kernel_blacklist', default='')
+@click.option('-l', '--kernel_ignorelist', default='')
 @click.argument('package', nargs=-1)
 def build(builder_image_prefix,
           download_concurrency, jobs, kernel_type, distro_filter,
           kernel_filter, probe_name, retries,
-          source_dir, download_timeout, probe_version, machine, kernel_blacklist, package):
+          source_dir, download_timeout, probe_version, machine, kernel_ignorelist, package):
     workspace_dir = os.getcwd()
     builder_source = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -149,10 +149,10 @@ def build(builder_image_prefix,
     download_config = DownloadConfig(download_concurrency, download_timeout, retries, None)
 
     yamldoc = None
-    if kernel_blacklist:
-        with open(kernel_blacklist, mode="rb") as fp:
+    if kernel_ignorelist:
+        with open(kernel_ignorelist, mode="rb") as fp:
             yamldoc = fp.read()
-    bl = blacklist.KernelBlacklist(yamldoc, probe_version)
+    kil = ignorelist.KernelIgnoreList(yamldoc, probe_version)
 
     crawler_filter = kernel_crawler.repo.CrawlerFilter(machine=machine, arch=arch, distro_filter=distro_filter, kernel_filter=kernel_filter)
 
@@ -163,7 +163,7 @@ def build(builder_image_prefix,
         kernels_futures = []
         for release, target in kernel_dirs:
             drel, krel = release if type(release) is tuple else ("", release)
-            future = executor.submit(distro_builder.build_kernel, bl, workspace,  probe, distro.builder_distro, krel, target)
+            future = executor.submit(distro_builder.build_kernel, kil, workspace,  probe, distro.builder_distro, krel, target)
             kernels_futures.append((release, future))
 
 

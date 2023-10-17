@@ -1,0 +1,31 @@
+name: Validate agent ignorelist yaml file
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+    paths:
+      - probe_builder/builder/ignorelist.schema.json
+      - agent_ignorelist.yaml
+  pull_request:
+    paths:
+      - probe_builder/builder/ignorelist.schema.json
+      - agent_ignorelist.yaml
+
+jobs:
+  build:
+    name: Validate agent_ignorelist.yaml
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate agent_ignorelist.yaml file against the schema
+        id: validate-agent-ignorelist-yaml
+        uses: GrantBirki/json-yaml-validate@v2.3.0
+        with:
+          json_schema: probe_builder/builder/ignorelist.schema.json
+          yaml_as_json: true
+          use_gitignore: false
+          files: |
+            agent_ignorelist.yaml

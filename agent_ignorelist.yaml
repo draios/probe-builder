@@ -1,17 +1,17 @@
-# Blacklist for known versions of sysdig agent (sysdigcloud-probe)
+# Ignorelist for known versions of sysdig agent (sysdigcloud-probe)
 matchers:
   redhat: ^(?P<version>[0-9]\.[0-9]+\.[0-9]+)-(?P<rpmrelver>[0-9]+)(?P<rpmrelpatch>(\.[0-9]+)*)\.(?P<rhel>el.*)\.(?P<arch>[a-z0-9-_]+)$
   generic: ^(?P<major>[0-9])\.(?P<minor>[0-9]+)\..*
 
-blacklists:
-  - description: "4.18.0 RHEL kernels with release version under 500"
+ignorelist:
+  - description: "[SMAGENT-5378] Patch backported to 4.18 RHEL8.9 kernels but only after ~500"
     probe_versions: [ 12.16.0, 12.16.1, 12.16.2, 12.16.3, 12.17.0 ]
     probe_kinds: [ kmod ]
     matcher: redhat
-    skip_if: "{{ version == '4.18.0' and (rpmrelver|int)<=500 }}"
+    skip_if: "{{ (version == '4.18.0' and (rpmrelver|int)<=500) }}"
 
-  - description: "6.2 kernel build"
+  - description: "[SMAGENT-4715] 6.2 kernel build"
     probe_versions: [ 12.12.0 ]
     probe_kinds: [ kmod ]
     matcher: generic
-    skip_if: "{{ major|int >= 6 or major|int == 6 and minor|int >= 2 }}"
+    skip_if: "{{ (major|int > 6) or (major|int == 6 and minor|int >= 2) }}"

@@ -1,5 +1,5 @@
 {
-  "title": "Blacklist",
+  "title": "Kernel Ignorelist",
   "type": "object",
   "properties": {
     "matchers": {
@@ -7,25 +7,25 @@
       "description": "list of matches",
       "default": []
     },
-    "blacklists": {
+    "ignorelist": {
       "type": "array",
-      "description": "blacklist",
+      "description": "ignorelist",
       "items": {
-        "$ref": "#/$defs/BlacklistEntry"
+        "$ref": "#/$defs/IgnoreEntry"
       }
     }
   },
   "additionalProperties": false,
   "required": [
     "matchers",
-    "blacklists"
+    "ignorelist"
   ],
   "$defs": {
-    "BlacklistEntry": {
+    "IgnoreEntry": {
       "type": "object",
       "properties": {
         "description": {
-          "description": "Description of the blacklist item",
+          "description": "Description of the ignore reason",
           "type": "string",
           "default": ""
         },
@@ -34,7 +34,7 @@
           "type": "string"
         },
         "probe_versions": {
-          "description": "list of probe versions to which this blacklist should be applied",
+          "description": "list of probe versions to which this ignorelist should be applied",
           "type": "array",
           "items": {
             "type": "string"
@@ -52,7 +52,7 @@
         },
         "skip_if": {
           "type": "string",
-          "description": "Jinja2 expression returning a boolean to determine whether a matching kernel should be skipped"
+          "description": "Jinja2 expression returning a boolean to determine whether a matching kernel should be ignored"
         }
       },
       "additionalProperties": false,
