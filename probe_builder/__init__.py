@@ -7,7 +7,7 @@ import click
 
 from probe_builder.kernel_crawler import crawl_kernels, DISTROS
 from . import kernel_crawler, disable_ipv6, git, docker
-from .builder import choose_builder, builder_image
+from .builder import choose_builder, builder_image, ignorelist
 from .builder.distro import Distro
 from .context import Context, Workspace, Probe, DownloadConfig
 from concurrent.futures import ThreadPoolExecutor
@@ -130,11 +130,12 @@ def prebuild(builder_image_prefix, machine):
 @click.option('-t', '--download-timeout', type=click.FLOAT)
 @click.option('-v', '--probe-version')
 @click.option('-m', '--machine', default=os.uname().machine)
+@click.option('-l', '--ignore-list', default='')
 @click.argument('package', nargs=-1)
 def build(builder_image_prefix,
           download_concurrency, jobs, kernel_type, distro_filter,
           kernel_filter, probe_name, retries,
-          source_dir, download_timeout, probe_version, machine, package):
+          source_dir, download_timeout, probe_version, machine, ignore_list, package):
     workspace_dir = os.getcwd()
     builder_source = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -147,6 +148,12 @@ def build(builder_image_prefix,
     distro = distro_obj.distro_obj
     download_config = DownloadConfig(download_concurrency, download_timeout, retries, None)
 
+    yamldoc = None
+    if ignore_list:
+        with open(ignore_list, mode="rb") as fp:
+            yamldoc = fp.read()
+    kil = ignorelist.KernelIgnoreList(yamldoc, probe_version)
+
     crawler_filter = kernel_crawler.repo.CrawlerFilter(machine=machine, arch=arch, distro_filter=distro_filter, kernel_filter=kernel_filter)
 
     kernels = distro_obj.get_kernels(workspace, package, download_config, crawler_filter)
@@ -156,7 +163,7 @@ def build(builder_image_prefix,
         kernels_futures = []
         for release, target in kernel_dirs:
             drel, krel = release if type(release) is tuple else ("", release)
-            future = executor.submit(distro_builder.build_kernel, workspace, probe, distro.builder_distro, krel, target)
+            future = executor.submit(distro_builder.build_kernel, kil, workspace, probe, distro.builder_distro, krel, target)
             kernels_futures.append((release, future))
 
 

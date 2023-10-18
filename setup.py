@@ -13,6 +13,8 @@ setup(name='probe_builder',
           'click',
           'requests',
           'lxml',
+          'jinja2',
+          'PyYAML',
       ],
       entry_points={
           'console_scripts': [

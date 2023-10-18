@@ -108,12 +108,20 @@ class DistroBuilder(object):
                     logger.warn(make_string(line))
                 return cls.ProbeBuildResult(cls.ProbeBuildResult.BUILD_FAILED, took, stdout)
 
-    def build_kernel(self, workspace, probe, builder_distro, release, target):
+    def build_kernel(self, ignorelist, workspace, probe, builder_distro, release, target):
         config_hash = self.hash_config(release, target)
         output_dir = workspace.subdir('output')
 
         kmod_skip_reason = builder_image.skip_build(workspace.machine, probe, output_dir, release, config_hash, False)
+        if not kmod_skip_reason:
+            logger.debug("Querying kmod ignorelist for {}".format(release))
+            kmod_skip_reason = ignorelist.ignore_reason("kmod", release)
+
         ebpf_skip_reason = builder_image.skip_build(workspace.machine, probe, output_dir, release, config_hash, True)
+        if not ebpf_skip_reason:
+            logger.debug("Querying legacy_ebpf ignorelist for {}".format(release))
+            ebpf_skip_reason = ignorelist.ignore_reason("legacy_ebpf", release)
+
         try:
             os.makedirs(output_dir, 0o755)
         except OSError as exc:
