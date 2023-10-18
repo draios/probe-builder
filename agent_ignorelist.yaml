@@ -4,14 +4,32 @@ matchers:
   generic: ^(?P<major>[0-9])\.(?P<minor>[0-9]+)\..*
 
 ignorelist:
-  - description: "[SMAGENT-5378] Patch backported to 4.18 RHEL8.9 kernels but only after ~500"
+  - description: "[SMAGENT-5378] RHEL8.9 kernels ~492..500 do not include backported patch"
     probe_versions: [ 12.16.0, 12.16.1, 12.16.2, 12.16.3, 12.17.0 ]
     probe_kinds: [ kmod ]
     matcher: redhat
-    skip_if: "{{ (version == '4.18.0' and (rpmrelver|int)<=500) }}"
+    skip_if: "{{ (version == '4.18.0' and 492<=(rpmrelver|int)<=500) }}"
+
+  - description: "[SMAGENT-5083] Patch backported to RHEL8.9 but not detected"
+    probe_versions: [ 12.12.0, 12.12.1, 12.13.0, 12.14.0, 12.14.1, 12.15.0 ]
+    probe_kinds: [ kmod ]
+    matcher: redhat
+    skip_if: "{{ (version == '4.18.0' and (rpmrelver|int)>500) }}"
+
+  - description: "[SMAGENT-5083] Patch backported to RHEL9.3 but not detected"
+    probe_versions: [ 12.12.0, 12.12.1, 12.13.0, 12.14.0, 12.14.1 ]
+    probe_kinds: [ kmod ]
+    matcher: redhat
+    skip_if: "{{ (version == '5.14.0' and (rpmrelver|int)>=327) }}"
 
   - description: "[SMAGENT-4715] 6.2 kernel build"
     probe_versions: [ 12.12.0 ]
     probe_kinds: [ kmod ]
     matcher: generic
     skip_if: "{{ (major|int > 6) or (major|int == 6 and minor|int >= 2) }}"
+
+  - description: "kernel 6.4: argument 1 of 'class_create' from incompatible pointer type"
+    probe_versions: [ 12.12.0, 12.13.0, 12.14.0, 12.14.1 ]
+    probe_kinds: [ kmod ]
+    matcher: generic
+    skip_if: "{{ (major|int > 6) or (major|int == 6 and minor|int >= 4) }}"

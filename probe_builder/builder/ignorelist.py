@@ -56,11 +56,11 @@ matchers:
   generic: ^(?P<major>[0-9])\.(?P<minor>[0-9]+)\..*
 
 ignorelist:
-  - description: "rhel<500"
+  - description: "492<=rhel<=500"
     probe_versions: [ 12.16.0, 12.16.1, 12.16.2, 12.16.3, 12.17.0 ]
     probe_kinds: [ kmod ]
     matcher: redhat
-    skip_if: "{{ (version == '4.18.0' and (rpmrelver|int)<=500) }}"
+    skip_if: "{{ (version == '4.18.0' and 492<=(rpmrelver|int)<=500) }}"
 
   - description: "kernel>=6.2"
     probe_versions: [ 12.12.0 ]
@@ -76,7 +76,8 @@ if __name__ == "__main__":
     handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
     kil = KernelIgnoreList(_test_ignorelist, "12.16.3")
-    assert "rhel<500" == kil.ignore_reason("kmod", "4.18.0-497.el8.x86_64")
+    assert "492<=rhel<=500" == kil.ignore_reason("kmod", "4.18.0-497.el8.x86_64")
+    assert None == kil.ignore_reason("kmod", "4.18.0-477.27.1.el8_8.x86_64")
     assert None == kil.ignore_reason("kmod", "4.18.0-506.el8.x86_64")
     assert None == kil.ignore_reason("kmod", "6.2.0")
     kil = KernelIgnoreList(_test_ignorelist, "12.12.0")
