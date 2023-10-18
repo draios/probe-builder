@@ -18,7 +18,8 @@ RUN \
 		llvm-14 \
 		&& apt-get clean
 
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 12
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 12 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 12
 
 # Enforce usage of clang 14, since clang 15 seems to
 # raise a lot of verifier issues
