@@ -130,12 +130,12 @@ def prebuild(builder_image_prefix, machine):
 @click.option('-t', '--download-timeout', type=click.FLOAT)
 @click.option('-v', '--probe-version')
 @click.option('-m', '--machine', default=os.uname().machine)
-@click.option('-l', '--kernel_ignorelist', default='')
+@click.option('-l', '--ignore-list', default='')
 @click.argument('package', nargs=-1)
 def build(builder_image_prefix,
           download_concurrency, jobs, kernel_type, distro_filter,
           kernel_filter, probe_name, retries,
-          source_dir, download_timeout, probe_version, machine, kernel_ignorelist, package):
+          source_dir, download_timeout, probe_version, machine, ignore_list, package):
     workspace_dir = os.getcwd()
     builder_source = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -149,8 +149,8 @@ def build(builder_image_prefix,
     download_config = DownloadConfig(download_concurrency, download_timeout, retries, None)
 
     yamldoc = None
-    if kernel_ignorelist:
-        with open(kernel_ignorelist, mode="rb") as fp:
+    if ignore_list:
+        with open(ignore_list, mode="rb") as fp:
             yamldoc = fp.read()
     kil = ignorelist.KernelIgnoreList(yamldoc, probe_version)
 
