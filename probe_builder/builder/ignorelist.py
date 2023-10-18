@@ -12,16 +12,14 @@ class KernelIgnoreList:
         self.ignorelist = []
         if yamldoc:
             config = yaml.safe_load(yamldoc)
-            for mn, mv in config['matchers'].items():
-                mv = re.compile(mv)
-                self.matchers[mn] = mv
+            self.matchers = { mn: re.compile(mv) for mn, mv in config['matchers'].items() }
             self.ignorelist = config['ignorelist']
         self.probe_version = probe_version
 
     def ignore_reason(self, probe_kind, kernel_release):
         logger.debug("======== {} probe {} kernel {}".format(probe_kind, self.probe_version, kernel_release))
         for b in self.ignorelist:
-            logger.debug("==== evaluating ignorelist entry {}".format(b['description']))
+            logger.debug("==== evaluating ignorelist entry '{}'".format(b['description']))
             if self.probe_version in b['probe_versions']:
                 logger.debug("probe version {} matches one of agent versions {}".format(self.probe_version, b['probe_versions']))
             else:

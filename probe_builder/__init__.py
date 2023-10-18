@@ -163,7 +163,7 @@ def build(builder_image_prefix,
         kernels_futures = []
         for release, target in kernel_dirs:
             drel, krel = release if type(release) is tuple else ("", release)
-            future = executor.submit(distro_builder.build_kernel, kil, workspace,  probe, distro.builder_distro, krel, target)
+            future = executor.submit(distro_builder.build_kernel, kil, workspace, probe, distro.builder_distro, krel, target)
             kernels_futures.append((release, future))
 
 

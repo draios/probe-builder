@@ -114,12 +114,12 @@ class DistroBuilder(object):
 
         kmod_skip_reason = builder_image.skip_build(workspace.machine, probe, output_dir, release, config_hash, False)
         if not kmod_skip_reason:
-            logger.info("Querying kmod ignorelist for {}".format(release))
+            logger.debug("Querying kmod ignorelist for {}".format(release))
             kmod_skip_reason = ignorelist.ignore_reason("kmod", release)
 
         ebpf_skip_reason = builder_image.skip_build(workspace.machine, probe, output_dir, release, config_hash, True)
         if not ebpf_skip_reason:
-            logger.info("Querying legacy_ebpf ignorelist for {}".format(release))
+            logger.debug("Querying legacy_ebpf ignorelist for {}".format(release))
             ebpf_skip_reason = ignorelist.ignore_reason("legacy_ebpf", release)
 
         try:
