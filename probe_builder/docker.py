@@ -56,7 +56,19 @@ def run(image, volumes, command, env, privileged=False, name=None, arch=None):
 
 
 def build(arch, image, dockerfile, context_dir):
-    pipe(['docker', 'buildx', 'build', '-t', '{}-{}'.format(str(image), arch), '-f', str(dockerfile), '--platform=linux/{}'.format(arch), str(context_dir)])
+    p = [
+        'docker',
+        'buildx',
+        'build',
+        '-t', '{}-{}'.format(str(image), arch) if arch else '{}'.format(str(image)),
+        '-f', str(dockerfile)
+    ]
+    if arch:
+        p += ['--platform=linux/{}'.format(arch)]
+
+    p += [str(context_dir)]
+
+    pipe(p)
     remove_dangling_images()
 
 

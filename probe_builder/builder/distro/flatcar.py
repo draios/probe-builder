@@ -3,6 +3,7 @@ import glob
 import logging
 import os
 import subprocess
+import time
 
 import click
 
@@ -11,6 +12,7 @@ from .. import toolkit, builder_image
 from ... import crawl_kernels, docker
 from ...kernel_crawler.download import download_file
 from ...kernel_crawler.repo import EMPTY_FILTER
+from probe_builder.py23 import make_bytes, make_string
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,8 @@ logger = logging.getLogger(__name__)
 class FlatcarBuilder(DistroBuilder):
     def unpack_kernels(self, workspace, distro, kernels):
         kernel_dirs = list()
+
+        logger.info("Kernels: {}".format(kernels))
 
         for (drel, krel), dev_containers in kernels.items():
             target = workspace.subdir('build', distro, krel)
@@ -56,19 +60,35 @@ class FlatcarBuilder(DistroBuilder):
             label = 'kmod'
             args = []
 
+        output_dir = workspace.subdir('output')
         coreos_kernel_release = os.path.basename(os.path.dirname(kernel_dir))
+
+        if builder_image.probe_built(workspace.machine, probe, output_dir, coreos_kernel_release, config_hash, bpf):
+            return cls.ProbeBuildResult(cls.ProbeBuildResult.BUILD_EXISTING, 0)
 
         if skip_reason:
             logger.info('Skipping build of {} probe {}-{} ({}): {}'.format(label, coreos_kernel_release, config_hash,
                                                                            release, skip_reason))
+            return cls.ProbeBuildResult(cls.ProbeBuildResult.BUILD_SKIPPED, 0)
 
-        docker.rm(container_name)
+        #docker.rm(container_name)
         try:
-            builder_image.run(workspace, probe, kernel_dir, coreos_kernel_release, config_hash, container_name, image_name, args)
-        except subprocess.CalledProcessError:
+            ts0 = time.time()
+            stdout = builder_image.run(workspace, probe, kernel_dir, coreos_kernel_release, config_hash, container_name, image_name, args)
+        except subprocess.CalledProcessError as e:
+            took = time.time() - ts0
             logger.error("Build failed for {} probe {}-{} ({})".format(label, coreos_kernel_release, config_hash, release))
         else:
-            logger.info("Build for {} probe {}-{} ({}) successful".format(label, coreos_kernel_release, config_hash, release))
+            took = time.time() - ts0
+            if builder_image.probe_built(workspace.machine, probe, output_dir, coreos_kernel_release, config_hash, bpf):
+                logger.info("Build for {} probe {}-{} ({}) successful".format(label, coreos_kernel_release, config_hash, release))
+                return cls.ProbeBuildResult(cls.ProbeBuildResult.BUILD_BUILT, took)
+            else:
+                logger.warn("Build for {} probe {}-{} failed silently: no output file found".format(label, coreos_kernel_release, config_hash))
+                for line in stdout.splitlines(False):
+                    logger.warn(make_string(line))
+                return cls.ProbeBuildResult(cls.ProbeBuildResult.BUILD_FAILED, took, stdout)
+
 
     def crawl(self, workspace, distro, crawler_distro, download_config=None, crawler_filter=EMPTY_FILTER):
         kernels = crawl_kernels(crawler_distro, crawler_filter=crawler_filter)
@@ -81,9 +101,10 @@ class FlatcarBuilder(DistroBuilder):
         all_urls = []
         kernel_files = {}
         for release, urls in kernels.items():
+            _drel, krel = release
             all_urls.extend(urls)
             kernel_files[release] = [
-                workspace.subdir(distro.distro, '{}-{}'.format(release, os.path.basename(url))) for url in urls]
+                workspace.subdir(distro.distro, '{}-{}'.format(krel, os.path.basename(url))) for url in urls]
 
         with click.progressbar(all_urls, label='Downloading development containers', item_show_func=to_s) as all_urls:
             for url in all_urls:
