@@ -20,7 +20,7 @@ def build_toolkit(workspace):
         return
     image = toolkit_image(workspace.image_prefix)
     dockerfile = os.path.join(workspace.builder_source, 'Dockerfile.toolkit')
-    docker.build(image, dockerfile, workspace.builder_source)
+    docker.build(image, dockerfile, workspace.builder_source, os.getcwd())
     HAVE_TOOLKIT = True
 
 

@@ -3,7 +3,7 @@ import os
 import requests
 from lxml import html
 
-from probe_builder.kernel_crawler.repo import Repository, Distro
+from probe_builder.kernel_crawler.repo import Repository, Mirror
 
 
 class FlatcarRepository(Repository):
@@ -21,7 +21,7 @@ class FlatcarRepository(Repository):
         return self.base_url
 
 
-class FlatcarMirror(Distro):
+class FlatcarMirror(Mirror):
     CHANNELS = ['stable', 'beta', 'alpha']
 
     def get_mirrors(self, crawler_filter):
