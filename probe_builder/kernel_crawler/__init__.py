@@ -10,7 +10,7 @@ from .rockylinux import RockyLinuxMirror
 from .debian import DebianMirror
 from .ubuntu import UbuntuMirror
 
-from .flatcar import FlatcarMirror
+from .flatcar import FlatcarDistro
 
 DISTROS = {
     'AliyunLinux': AliyunLinuxMirror,
@@ -31,7 +31,7 @@ DISTROS = {
     'Debian': DebianMirror,
     'Ubuntu': UbuntuMirror,
 
-    'Flatcar': FlatcarMirror,
+    'Flatcar': FlatcarDistro,
 }
 
 def crawl_kernels(distro, crawler_filter):
