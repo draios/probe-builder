@@ -45,6 +45,7 @@ class AmazonLinux2Mirror(repo.Mirror):
         'core/latest',
         'extras/kernel-5.4/latest',
         'extras/kernel-5.10/latest',
+        'extras/kernel-5.15/latest',
     ]
 
     def list_repos(self, crawler_filter):
