@@ -9,6 +9,7 @@ import os
 import logging
 
 from probe_builder.context import DownloadConfig
+import tenacity
 
 try:
     import lzma
@@ -95,7 +96,18 @@ def download_batch(urls, output_dir, download_config=None):
             traceback.print_exc()
             print("^^^ While downloading {}".format(basename))
 
-
+# tenacity.retry strategy
+# there are some instances (especially on ubuntu mirrors) where the connection is reset
+# by the server, leading to the following error:
+# requests.exceptions.ConnectionError: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+# This is a workaround to retry the connection a few times before giving up.
+@tenacity.retry(
+    # only retry on ConnectionError (other types of transient errors may be added here)
+    retry=tenacity.retry_if_exception_type(exception_types=(requests.exceptions.ConnectionError,)),
+    stop=tenacity.stop_after_attempt(4), # Maximum number of retries
+    wait=tenacity.wait_exponential(multiplier=1, min=1, max=60), # Exponential backoff
+    reraise=True # Re-raise the original exception (instead of tenacity.RetryError)
+)
 def get_url(url):
     resp = requests.get(url)
     resp.raise_for_status()
