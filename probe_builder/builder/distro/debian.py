@@ -65,6 +65,11 @@ class DebianBuilder(DistroBuilder):
     @staticmethod
     def _reparent_link(base_path, release, link_name):
         build_link_path = os.path.join(base_path, 'lib/modules', release, link_name)
+        # check if file exists and is a symlink
+        # from kernel 6.6 we actually have /usr/lib/modules
+        # which is a relative symlink already
+        if not os.path.exists(build_link_path) or not os.path.islink(build_link_path):
+            return
         build_link_target = os.readlink(build_link_path)
         if build_link_target.startswith('/'):
             build_link_target = '../../..' + build_link_target
