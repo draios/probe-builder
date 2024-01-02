@@ -14,10 +14,16 @@ logger = logging.getLogger(__name__)
 pp = pprint.PrettyPrinter(depth=4)
 
 class DebianBuilder(DistroBuilder):
-    KERNEL_VERSION_RE = re.compile(r'-(?P<version>[0-9]\.[0-9]+\.[0-9]+(-[^-]+)?)-(?P<vararch>[a-z0-9-]+)_')
-    KBUILD_PACKAGE_RE = re.compile(r'linux-kbuild-(?P<version>[0-9]\.[0-9]+(\.[0-9]+-[^-]+)?)_')
-    #  linux-kbuild-3.10_pkgver                              |  3   . 10  |     optional ^
-    #  linux-kbuild-6.5.0-0_pkgver                           |  6   . 5     . 0    - 0     |
+    # NOTE: apparently from kernel 6.6.8 debian decided to drop the trailing -<n> from the version
+    KERNEL_VERSION_RE = re.compile(r'-(?P<version>[0-9]\.[0-9]+\.[0-9]+(-[0-9][^-]*)?)-(?P<vararch>[a-z0-9-]+)_')
+    #                                            |  5   . 10    . 0     - 8          |-  rt-amd64             _ 5.10.46-5_amd64.deb
+    #                                            |  5   . 10    . 0     - 8          |-  amd64                _ 5.10.46-5_amd64.deb
+    #                                            |  6   . 5     . 0     - 0          |-  0                    _ 6.5.0-0.2~bpo11+1_amd64.deb
+    #                                            |  6   . 6     . 8                  |-  rt-amd64             _ 6.6.8-1_amd64.deb
+    KBUILD_PACKAGE_RE = re.compile(r'linux-kbuild-(?P<version>[0-9]\.[0-9]+(\.[0-9]+(-[0-9][^-]*)?)?)_')
+    #  linux-kbuild-3.10_pkgver                              |  3   . 10  |     optional           ^|
+    #  linux-kbuild-6.6.8_pkgver                             |  6   . 6     . 8       optional   ^  |
+    #  linux-kbuild-6.5.0-0_pkgver                           |  6   . 5     . 0      - 0            |
 
     def crawl(self, workspace, distro, crawler_distro, download_config=None, crawler_filter=EMPTY_FILTER):
         # for debian, we essentially want to discard some of the classification work performed by the crawler
@@ -65,6 +71,11 @@ class DebianBuilder(DistroBuilder):
     @staticmethod
     def _reparent_link(base_path, release, link_name):
         build_link_path = os.path.join(base_path, 'lib/modules', release, link_name)
+        # check if file exists and is a symlink
+        # from kernel 6.6 we actually have /usr/lib/modules
+        # which is a relative symlink already
+        if not os.path.exists(build_link_path) or not os.path.islink(build_link_path):
+            return
         build_link_target = os.readlink(build_link_path)
         if build_link_target.startswith('/'):
             build_link_target = '../../..' + build_link_target
