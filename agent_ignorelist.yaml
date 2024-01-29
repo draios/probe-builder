@@ -28,6 +28,12 @@ ignorelist:
     matcher: redhat
     skip_if: "{{ (version == '5.14.0' and (rpmrelver|int)>=327) }}"
 
+  - description: "[SMAGENT-6415] kernel 5.14: argument 1 of 'class_create' from incompatible pointer type"
+    probe_versions: [ 12.17.0, 12.17.1, 12.18.0, 12.19.0, 12.20.0 ]
+    probe_kinds: [ kmod, legacy_ebpf ]
+    matcher: redhat
+    skip_if: "{{ (version == '5.14.0' and (rpmrelver|int) >= 410) }}"
+
   - description: "[SMAGENT-4715] 6.2 kernel build"
     probe_versions: [ 12.12.0 ]
     probe_kinds: [ kmod ]
