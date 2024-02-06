@@ -4,6 +4,12 @@ matchers:
   generic: ^(?P<major>[0-9])\.(?P<minor>[0-9]+)\..*
 
 ignorelist:
+  - description: "Kernel 6.7 on agent <= 12.19.0"
+    probe_versions: [ 12.17.0, 12.17.1, 12.18.0, 12.19.0 ]
+    probe_kinds: [ kmod, legacy_ebpf ]
+    matcher: generic
+    skip_if: "{{ (major|int > 6) or (major|int == 6 and minor|int >= 7) }}"
+
   - description: "[SMAGENT-6088] Kernel 6.6 on agent <= 12.17.1"
     probe_versions: [ 12.15.0, 12.16.0, 12.16.1, 12.16.2, 12.16.3, 12.17.0, 12.17.1 ]
     probe_kinds: [ kmod, legacy_ebpf ]
