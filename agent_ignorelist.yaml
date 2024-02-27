@@ -23,7 +23,7 @@ ignorelist:
     skip_if: "{{ (version == '4.18.0' and 492<=(rpmrelver|int)<=500) }}"
 
   - description: "[SMAGENT-5083] Patch backported to RHEL8.9 but not detected"
-    probe_versions: [ 12.12.0, 12.12.1, 12.13.0, 12.14.0, 12.14.1, 12.15.0 ]
+    probe_versions: [ 12.12.0, 12.13.0, 12.14.0, 12.14.1 ]
     probe_kinds: [ kmod ]
     matcher: redhat
     skip_if: "{{ (version == '4.18.0' and (rpmrelver|int)>500) }}"
