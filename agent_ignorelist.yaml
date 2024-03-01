@@ -52,6 +52,18 @@ ignorelist:
     matcher: generic
     skip_if: "{{ (major|int > 6) or (major|int == 6 and minor|int >= 3) }}"
 
+  - description: "[https://github.com/falcosecurity/libs/pull/1632] kernel 6.8: implicit declaration of function 'strlcpy'"
+    probe_versions: [ 12.18.0, 12.19.0, 12.20.0, 13.0.0 ]
+    probe_kinds: [ kmod ]
+    matcher: generic
+    skip_if: "{{ major|int == 6 and minor|int >= 8 }}"
+
+  - description: "[SMAGENT-6649] kernel 5.14 - RHEL backport: member reference base type struct 'percpu_counter'"
+    probe_versions: [ 12.18.0, 12.19.0, 12.20.0, 13.0.0 ]
+    probe_kinds: [ legacy_ebpf ]
+    matcher: redhat
+    skip_if: "{{ (version == '5.14.0' and (rpmrelver|int) >= 410) }}"
+
 # 12.14.1 fixed the build for bpf but not for kmod
   - description: "kernel 6.3: argument 1 of 'class_create' from incompatible pointer type"
     probe_versions: [ 12.14.1 ]
