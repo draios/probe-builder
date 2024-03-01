@@ -56,7 +56,7 @@ ignorelist:
     probe_versions: [ 12.18.0, 12.19.0, 12.20.0, 13.0.0 ]
     probe_kinds: [ kmod ]
     matcher: generic
-    skip_if: "{{ major|int == 6 and minor|int >= 8 }}"
+    skip_if: "{{ (major|int > 6) or (major|int == 6 and minor|int >= 8) }}"
 
   - description: "[SMAGENT-6649] kernel 5.14 - RHEL backport: member reference base type struct 'percpu_counter'"
     probe_versions: [ 12.18.0, 12.19.0, 12.20.0, 13.0.0 ]
