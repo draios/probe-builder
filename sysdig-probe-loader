@@ -308,19 +308,22 @@ download_kernel_probe() {
 build_kernel_probe() {
 	echo "* Running dkms install for ${PACKAGE_NAME}"
 
-	if dkms install -m "${PACKAGE_NAME}" -v "${SYSDIG_VERSION}" -k "${KERNEL_RELEASE}"; then
+	if bash -x dkms install -m "${PACKAGE_NAME}" -v "${SYSDIG_VERSION}" -k "${KERNEL_RELEASE}"; then
 		echo "  dkms install done"
 
 		echo "* Trying to load the dkms ${PROBE_NAME} via insmod"
-		if insmod "/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/${KERNEL_RELEASE}/${ARCH}/module/${PROBE_NAME}.ko" > /dev/null 2>&1; then
-			echo "  ${PROBE_NAME} found and loaded in dkms"
-			return 0
-		elif insmod "/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/${KERNEL_RELEASE}/${ARCH}/module/${PROBE_NAME}.ko.xz" > /dev/null 2>&1; then
-			echo "  ${PROBE_NAME} found and loaded in dkms (xz)"
-			return 0
-		else
-			echo "  Unable to insmod"
-		fi
+		for ext in ko ko.xz ko.gz ko.zst ; do
+			f="/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/${KERNEL_RELEASE}/${ARCH}/module/${PROBE_NAME}.${ext}"
+			echo "* Looking for ${f}"
+			if [ -f $f ]; then
+				echo "* Found ${f}; trying to insmod"
+				if insmod $f > /dev/null 2>&1; then
+					echo "  ${PROBE_NAME}.${ext} found and loaded in dkms"
+					return 0
+				fi
+			fi
+		done
+		echo "  Unable to insmod"
 	else
 		DKMS_LOG="/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/build/make.log"
 		if [ -f "${DKMS_LOG}" ]; then
