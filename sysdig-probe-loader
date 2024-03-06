@@ -312,15 +312,19 @@ build_kernel_probe() {
 		echo "  dkms install done"
 
 		echo "* Trying to load the dkms ${PROBE_NAME} via insmod"
-		if insmod "/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/${KERNEL_RELEASE}/${ARCH}/module/${PROBE_NAME}.ko" > /dev/null 2>&1; then
-			echo "  ${PROBE_NAME} found and loaded in dkms"
-			return 0
-		elif insmod "/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/${KERNEL_RELEASE}/${ARCH}/module/${PROBE_NAME}.ko.xz" > /dev/null 2>&1; then
-			echo "  ${PROBE_NAME} found and loaded in dkms (xz)"
-			return 0
-		else
-			echo "  Unable to insmod"
-		fi
+		# Try all possible extensions a kernel module built by dkms can have
+		for ext in ko ko.xz ko.gz ko.zst ; do
+			ko_file="/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/${KERNEL_RELEASE}/${ARCH}/module/${PROBE_NAME}.${ext}"
+			echo "* Looking for ${ko_file}"
+			if [ -f $ko_file ]; then
+				echo "* Found ${ko_file}; trying to insmod"
+				if insmod $ko_file > /dev/null 2>&1; then
+					echo "  ${PROBE_NAME}.${ext} found and loaded in dkms"
+					return 0
+				fi
+			fi
+		done
+		echo "  Unable to insmod"
 	else
 		DKMS_LOG="/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/build/make.log"
 		if [ -f "${DKMS_LOG}" ]; then
