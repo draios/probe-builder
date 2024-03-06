@@ -764,7 +764,7 @@ if ([ "$SYSDIG_AGENT_DRIVER" = universal_ebpf ] || [ "$SYSDIG_AGENT_DRIVER" = km
   exit 1
 elif [ "$SYSDIG_AGENT_DRIVER" = universal_ebpf ]; then
   # We don't need the kmod for Universal eBPF
-  /sbin/rmmod "$PROBE_NAME"
+  /sbin/rmmod "$PROBE_NAME" || true
 # Loads the probe
 elif [ "$SYSDIG_AGENT_DRIVER" = legacy_ebpf ] || [ "${SYSDIG_BPF_PROBE+x}" = x ]; then
 	load_bpf_probe
