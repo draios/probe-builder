@@ -308,16 +308,17 @@ download_kernel_probe() {
 build_kernel_probe() {
 	echo "* Running dkms install for ${PACKAGE_NAME}"
 
-	if bash -x dkms install -m "${PACKAGE_NAME}" -v "${SYSDIG_VERSION}" -k "${KERNEL_RELEASE}"; then
+	if dkms install -m "${PACKAGE_NAME}" -v "${SYSDIG_VERSION}" -k "${KERNEL_RELEASE}"; then
 		echo "  dkms install done"
 
 		echo "* Trying to load the dkms ${PROBE_NAME} via insmod"
+		# Try all possible extensions a kernel module built by dkms can have
 		for ext in ko ko.xz ko.gz ko.zst ; do
-			f="/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/${KERNEL_RELEASE}/${ARCH}/module/${PROBE_NAME}.${ext}"
-			echo "* Looking for ${f}"
-			if [ -f $f ]; then
-				echo "* Found ${f}; trying to insmod"
-				if insmod $f > /dev/null 2>&1; then
+			ko_file="/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/${KERNEL_RELEASE}/${ARCH}/module/${PROBE_NAME}.${ext}"
+			echo "* Looking for ${ko_file}"
+			if [ -f $ko_file ]; then
+				echo "* Found ${ko_file}; trying to insmod"
+				if insmod $ko_file > /dev/null 2>&1; then
 					echo "  ${PROBE_NAME}.${ext} found and loaded in dkms"
 					return 0
 				fi
