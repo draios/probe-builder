@@ -95,13 +95,17 @@ build_bpf() {
 			# in the source directory so we'll end up running
 			# make from the source tree anyway (as opposed to the build directory)
 			BUILD_DIR=/code/sysdig-rw/driver
+			# After the kmod/bpf package split we need to use a different approach
+			# so to copy the header files and trigger the configure system
+			# Ref: https://github.com/falcosecurity/driverkit/commit/dd7a2f19c7775bc66e8308cae607c0a9513457d1
+			make -C $BUILD_DIR bpf
 		else
 			# cmake failed, so we're probably dealing with an agent-kmodule.tgz
 			# package file and we can therefore run make from the source tree
 			# (without the driver/ prefix)
 			BUILD_DIR=/code/sysdig-rw
+			make -C $BUILD_DIR/bpf clean all
 		fi
-		make -C $BUILD_DIR/bpf clean all
 		cp $BUILD_DIR/bpf/probe.o $OUTPUT/$PROBE_NAME-bpf-$PROBE_VERSION-$ARCH-$KERNEL_RELEASE-$HASH.o
 	fi
 }
