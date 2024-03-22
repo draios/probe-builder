@@ -37,7 +37,7 @@ class RpmRepository(repo.Repository):
 
     @classmethod
     def kernel_package_query(cls):
-        return '''name IN ('kernel', 'kernel-devel')'''
+        return '''name IN ('kernel', 'kernel-devel') AND arch NOT IN ('src')'''
 
     @classmethod
     def build_base_query(cls, filter=''):
