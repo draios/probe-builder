@@ -40,7 +40,7 @@ call_cmake() {
 		PROBE_VERSION_PARAM=DRIVER_VERSION
 		PROBE_DEVICE_NAME_PARAM=DRIVER_DEVICE_NAME
 	fi
-	cmake -DCMAKE_BUILD_TYPE=Release -D${PROBE_NAME_PARAM}=$PROBE_NAME -D${PROBE_VERSION_PARAM}=$PROBE_VERSION -D${PROBE_DEVICE_NAME_PARAM}=$PROBE_DEVICE_NAME -DCREATE_TEST_TARGETS=OFF ${SRC_DIR}
+	cmake -DBUILD_DRIVER=On -DBUILD_BPF=On -DCMAKE_BUILD_TYPE=Release -D${PROBE_NAME_PARAM}=$PROBE_NAME -D${PROBE_VERSION_PARAM}=$PROBE_VERSION -D${PROBE_DEVICE_NAME_PARAM}=$PROBE_DEVICE_NAME -DCREATE_TEST_TARGETS=OFF ${SRC_DIR}
 }
 
 build_kmod() {
@@ -58,8 +58,8 @@ build_kmod() {
 	if call_cmake /code/sysdig-rw; then
 		# cmake was successful, we'll run 'make' from within the
 		# /build/sysdig directory where cmake copied all files for us
+		make -C /build/sysdig driver
 		BUILD_DIR=/build/sysdig/driver
-		make -C $BUILD_DIR driver
 	else
 		# cmake failed, so we're probably dealing with an agent-kmodule.tgz
 		# package file and we can therefore run make from the source tree
@@ -94,11 +94,11 @@ build_bpf() {
 			# for the eBPF probe, cmake will only render driver_config.h
 			# in the source directory so we'll end up running
 			# make from the source tree anyway (as opposed to the build directory)
-			BUILD_DIR=/code/sysdig-rw/driver
 			# After the kmod/bpf package split we need to use a different approach
 			# so to copy the header files and trigger the configure system
 			# Ref: https://github.com/falcosecurity/driverkit/commit/dd7a2f19c7775bc66e8308cae607c0a9513457d1
-			make -C $BUILD_DIR bpf
+			make -C /build/sysdig bpf
+			BUILD_DIR=/build/sysdig/driver
 		else
 			# cmake failed, so we're probably dealing with an agent-kmodule.tgz
 			# package file and we can therefore run make from the source tree
