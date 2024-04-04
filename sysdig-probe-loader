@@ -717,9 +717,6 @@ fi
 
 MAX_RMMOD_WAIT=60
 KERNEL_ERR_MESSAGE=""
-if [[ $# -ge 1 ]]; then
-	KERNEL_ERR_MESSAGE="$1"
-fi
 
 if [ -z "${SYSDIG_REPOSITORY}" ]; then
 	SYSDIG_REPOSITORY="stable"
@@ -753,6 +750,17 @@ fi
 if ! hash curl > /dev/null 2>&1; then
 	echo "This program requires curl"
 	exit 1
+fi
+
+if [[ $# -ge 1 ]]; then
+	if [[ "$1" = "--unload" || "$1" = "-u" ]]; then
+		/sbin/rmmod "$PROBE_NAME" || true
+		/sbin/rmmod "$BPF_PROBE_NAME" || true
+		echo "Probe unloaded"
+		exit 0
+	else
+		KERNEL_ERR_MESSAGE="$1"
+	fi
 fi
 
 if [ -v SYSDIG_FORCE_BUILD_PROBE ] && [ -v SYSDIG_FORCE_DOWNLOAD_PROBE ] ; then
