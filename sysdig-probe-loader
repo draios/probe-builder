@@ -750,9 +750,11 @@ if [ "$(id -u)" != 0 ]; then
 	exit 1
 fi
 
-if ! hash curl > /dev/null 2>&1; then
-	echo "This program requires curl"
-	exit 1
+if [ "$SYSDIG_AGENT_DRIVER" != universal_ebpf ]; then
+	if ! hash curl > /dev/null 2>&1; then
+		echo "This program requires curl"
+		exit 1
+	fi
 fi
 
 if [ -v SYSDIG_FORCE_BUILD_PROBE ] && [ -v SYSDIG_FORCE_DOWNLOAD_PROBE ] ; then
