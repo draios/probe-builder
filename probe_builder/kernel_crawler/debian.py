@@ -13,6 +13,7 @@ class DebianMirror(repo.Distro):
         mirrors = [
             deb.DebMirror('http://mirrors.edge.kernel.org/debian/', repo_filter),
             deb.DebMirror('http://security.debian.org/', repo_filter),
+            deb.DebMirror('http://security.debian.org/debian-security/', repo_filter),
         ]
         return mirrors
 
