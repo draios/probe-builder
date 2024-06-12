@@ -70,3 +70,9 @@ ignorelist:
     probe_kinds: [ kmod ]
     matcher: generic
     skip_if: "{{ (major|int > 6) or (major|int == 6 and minor|int >= 3) }}"
+
+  - description: "[https://github.com/falcosecurity/libs/pull/1884] kernel 6.10: implicit declaration of function 'fd_is_open'"
+    probe_versions: [ 13.1.0, 13.1.1, 13.2.0, 13.2.1 ]
+    probe_kinds: [ kmod ]
+    matcher: generic
+    skip_if: "{{ major|int == 6 and minor|int == 10 }}"
