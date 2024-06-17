@@ -15,7 +15,7 @@ setup(name='probe_builder',
           'lxml',
           'jinja2',
           'PyYAML',
-          'tenacity',
+          'tenacity==8.3.*',
       ],
       entry_points={
           'console_scripts': [
