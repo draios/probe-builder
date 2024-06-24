@@ -2,6 +2,7 @@ from .aliyunlinux import AliyunLinuxMirror
 from .almalinux import AlmaLinuxMirror
 from .amazonlinux import AmazonLinux1Mirror, AmazonLinux2Mirror, AmazonLinux2022Mirror
 from .centos import CentosMirror, CentosStreamMirror
+from .euleros import EulerOSMirror
 from .fedora import FedoraMirror
 from .oracle import Oracle6Mirror, Oracle7Mirror, Oracle8Mirror, Oracle9Mirror
 from .photon_os import PhotonOsMirror
@@ -20,6 +21,7 @@ DISTROS = {
     'AmazonLinux2022': AmazonLinux2022Mirror,
     'CentOS': CentosMirror,
     'CentOSStream': CentosStreamMirror,
+    'EulerOS': EulerOSMirror,
     'Fedora': FedoraMirror,
     'Oracle6': Oracle6Mirror,
     'Oracle7': Oracle7Mirror,
