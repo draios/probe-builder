@@ -368,15 +368,6 @@ load_kernel_probe() {
 		return 0
 	fi
 
-	local SYSDIG_PROBE_FILENAME
-	local URL
-
-	# Evaluates variables override, returns if cannot (cannot find kernel config)
-	get_variable_override_kernel_probe
-	if [ $? -eq 1 ]; then
-		return 1
-	fi
-
 	# Forces probe download, skips build
 	if [ -v SYSDIG_FORCE_DOWNLOAD_PROBE ]; then
 		echo "* Skipping build, FORCE_DOWNLOAD_PROBE is enabled"
@@ -397,10 +388,19 @@ load_kernel_probe() {
 			echo "${PROBE_NAME} found and loaded with modprobe"
 			return 0
 		fi
+	fi
 
-		echo "* Trying to find precompiled ${PROBE_NAME} for ${KERNEL_RELEASE}"
+	echo "* Trying to find precompiled ${PROBE_NAME} for ${KERNEL_RELEASE}"
+	# Evaluates variables override, returns if cannot (cannot find kernel config)
+	local SYSDIG_PROBE_FILENAME
+	local URL
+	get_variable_override_kernel_probe
+	if [ $? -eq 1 ]; then
+		return 1
+	fi
 
-		# Looks for a precompiled kernel probe locally
+	# Look for a precompiled kernel probe locally
+	if [ ! -v SYSDIG_FORCE_DOWNLOAD_PROBE ]; then
 		echo "* Trying to find precompiled ${PROBE_NAME} for ${KERNEL_RELEASE}"
 		if [ -f "${HOME}/.sysdig/${SYSDIG_PROBE_FILENAME}" ]; then
 			echo "  Found precompiled module at ~/.sysdig/${SYSDIG_PROBE_FILENAME}"
