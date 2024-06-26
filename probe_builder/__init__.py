@@ -70,10 +70,16 @@ class LocalDistro(object):
         self.distro_obj = Distro(distro, builder_distro)
         self.distro_builder = self.distro_obj.builder()
 
-    def get_kernels(self, _workspace, packages, _download_config, _crawler_filter):
-        # For local distros we do not have the concept of a "distro release", so we use ""
-        return {("", krel): pkgs for krel, pkgs in self.distro_builder.batch_packages(packages).items()}
+    def get_kernels(self, _workspace, packages, _download_config, crawler_filter):
 
+        kernel_filter = crawler_filter.kernel_filter
+        # For local distros we do not have the concept of a "distro release", so we use ""
+        return {
+            ("", krel): pkgs
+            for krel, pkgs in self.distro_builder.batch_packages(packages).items()
+            # Only include the kernel if it starts with the kernel filter
+            if krel.startswith(kernel_filter)
+        }
 
 CLI_DISTROS = {
     'AliyunLinux': CrawlDistro('aliyunlinux', 'centos', 'AliyunLinux'),
@@ -214,7 +220,7 @@ def build(builder_image_prefix,
         print("Number of failed kernels: {}".format(failed))
         print("")
 
-    sys.exit(1 if failed else 0)
+    sys.exit(1 if failed or len(kernels_futures) == 0 else 0)
 
 
 @click.command()
