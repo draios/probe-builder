@@ -75,4 +75,10 @@ ignorelist:
     probe_versions: [ 12.20.0, 13.0.0, 13.0.1, 13.0.2, 13.0.3, 13.0.4, 13.1.0, 13.1.1, 13.2.0, 13.2.1, 13.3.0, 13.3.1 ]
     probe_kinds: [ kmod ]
     matcher: generic
-    skip_if: "{{ major|int == 6 and minor|int == 10 }}"
+    skip_if: "{{ major|int == 6 and minor|int >= 10 }}"
+
+  - description: "kernel 6.11: no member named '__i_ctime' in 'struct inode'"
+    probe_versions: [ 12.20.0, 13.0.0, 13.0.1, 13.0.2, 13.0.3, 13.0.4, 13.1.0, 13.1.1, 13.2.0, 13.2.1, 13.3.0, 13.3.1, 13.3.2, 13.3.3, 13.4.0 ]
+    probe_kinds: [ legacy_ebpf ]
+    matcher: generic
+    skip_if: "{{ major|int == 6 and minor|int >= 11 }}"
