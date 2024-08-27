@@ -1,0 +1,35 @@
+FROM ubuntu:noble
+
+# Note: as of Aug-2024, ubuntu noble returns:
+# $ apt list -a gcc-14
+# gcc-14/noble,now 14-20240412-0ubuntu1 amd64 [installed,automatic]
+# $ gcc --version
+# gcc (Ubuntu 14-20240412-0ubuntu1) 14.0.1 20240412 (experimental) [master r14-9935-g67e1433a94f]
+
+RUN echo 'deb http://archive.ubuntu.com/ubuntu/ noble-proposed restricted main multiverse universe' > /etc/apt/sources.list.d/ubuntu-proposed.list && \
+	apt-get update && \
+	apt-get -y --no-install-recommends install \
+		cmake \
+		g++-14 \
+		git \
+		kmod \
+		libc6-dev \
+		libelf-dev \
+		make \
+		pkg-config \
+		clang-14 \
+		llvm-14 \
+		&& apt-get clean
+
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 14 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 14
+
+# Enforce usage of clang 14, since clang 15 seems to
+# raise a lot of verifier issues
+ENV CLANG clang-14
+ENV LLC llc-14
+
+ADD builder-entrypoint.sh /
+WORKDIR /build/probe
+ENTRYPOINT [ "/builder-entrypoint.sh" ]
+
