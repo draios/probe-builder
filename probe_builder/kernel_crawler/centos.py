@@ -19,8 +19,8 @@ def v6_or_v7(ver):
 class CentosMirror(repo.Distro):
     def get_mirrors(self, crawler_filter):
         mirrors = [
-            rpm.RpmMirror('http://mirror.centos.org/centos/', 'os/{}/'.format(crawler_filter.machine), v7_only),
-            rpm.RpmMirror('http://mirror.centos.org/centos/', 'updates/{}/'.format(crawler_filter.machine), v7_only),
+            #rpm.RpmMirror('http://mirror.centos.org/centos/', 'os/{}/'.format(crawler_filter.machine), v7_only),
+            #rpm.RpmMirror('http://mirror.centos.org/centos/', 'updates/{}/'.format(crawler_filter.machine), v7_only),
             # CentOS 8 reached end-of-life at the end of 2021, so no point looking for it
             # rpm.RpmMirror('http://mirror.centos.org/centos/', 'BaseOS/x86_64/os/', v8_only),
             rpm.RpmMirror('http://archive.kernel.org/centos-vault/', 'os/{}/'.format(crawler_filter.machine), v6_or_v7),
@@ -33,11 +33,12 @@ class CentosStreamMirror(repo.Distro):
     def get_mirrors(self, crawler_filter):
         mirrors = [
             # CentOS 8 Stream
-            rpm.RpmMirror('http://mirror.centos.org/centos/', 'BaseOS/{}/os/'.format(crawler_filter.machine), v8_stream),
-            rpm.RpmMirror('http://mirror.centos.org/centos/', 'AppStream/{}/os/'.format(crawler_filter.machine), v8_stream),
+            rpm.RpmMirror('http://archive.kernel.org/centos-vault/', 'BaseOS/{}/os/'.format(crawler_filter.machine), v8_stream),
+            rpm.RpmMirror('http://archive.kernel.org/centos-vault/', 'AppStream/{}/os/'.format(crawler_filter.machine), v8_stream),
 
             # CentOS 9 Stream
-            rpm.RpmMirror('http://mirror.stream.centos.org/', 'BaseOS/{}/os/'.format(crawler_filter.machine), v9_only),
-            rpm.RpmMirror('http://mirror.stream.centos.org/', 'AppStream/{}/os/'.format(crawler_filter.machine), v9_only),
+            # Taken from https://mirrormanager.fedoraproject.org/mirrors/CentOS
+            rpm.RpmMirror('http://ftpmirror.your.org/pub/CentOS-Stream-All/', 'BaseOS/{}/os/'.format(crawler_filter.machine), v9_only),
+            rpm.RpmMirror('http://ftpmirror.your.org/pub/CentOS-Stream-All/', 'AppStream/{}/os/'.format(crawler_filter.machine), v9_only),
         ]
         return mirrors
