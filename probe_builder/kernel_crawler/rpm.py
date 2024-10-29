@@ -69,8 +69,13 @@ class RpmRepository(repo.Repository):
         return cursor.fetchall()
 
     def get_repodb_url(self):
-        repomd = get_url(self.base_url + 'repodata/repomd.xml')
-        pkglist_url = self.get_loc_by_xpath(repomd, '//repo:repomd/repo:data[@type="primary_db"]/repo:location/@href')
+        repomd_url = self.base_url + 'repodata/repomd.xml'
+        repomd = get_url(repomd_url)
+        xpath_query = '//repo:repomd/repo:data[@type="primary_db"]/repo:location/@href'
+        try:
+            pkglist_url = self.get_loc_by_xpath(repomd, xpath_query)
+        except IndexError:
+            raise ValueError('Could resolve xpath query "{}" at {}'.format(xpath_query, repomd_url))
         return self.base_url + pkglist_url
 
     def get_package_tree(self, crawler_filter):
@@ -78,7 +83,7 @@ class RpmRepository(repo.Repository):
         try:
             repodb_url = self.get_repodb_url()
             repodb = get_url(repodb_url)
-        except requests.exceptions.RequestException:
+        except (requests.exceptions.RequestException, ValueError):
             traceback.print_exc()
             return {}
         with tempfile.NamedTemporaryFile() as tf:
