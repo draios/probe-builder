@@ -17,7 +17,6 @@ class RockyLinuxMirror(repo.Distro):
             # Rocky Linux 9
             rpm.RpmMirror('http://dl.rockylinux.org/pub/rocky/', 'BaseOS/{}/os/'.format(crawler_filter.machine), v9_only),
             rpm.RpmMirror('http://dl.rockylinux.org/pub/rocky/', 'AppStream/{}/os/'.format(crawler_filter.machine), v9_only),
-            # Valut repo not yet available for Rocky Linux 9
-            #rpm.RpmMirror('http://dl.rockylinux.org/vault/rocky/', 'BaseOS/{}/os/'.format(crawler_filter.machine), v9_only),
+            rpm.RpmMirror('http://dl.rockylinux.org/vault/rocky/', 'BaseOS/{}/os/'.format(crawler_filter.machine), v9_only),
         ]
         return mirrors
