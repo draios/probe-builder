@@ -6,14 +6,14 @@ FROM ubuntu:noble
 # gcc-13/noble,now 13.2.0-23ubuntu4 amd64 [installed,automatic]
 
 RUN for pkg in g++-13 gcc-13 cpp-13 gcc-13-base libgcc-13-dev libobjc-13-dev libstdc++-13-dev; do \
-	echo "Package: $pkg\nPin: version 13.2.*\nPin-Priority: 900\n" \
+	echo "Package: $pkg\nPin: version 13.3.*\nPin-Priority: 900\n" \
 	>> /etc/apt/preferences.d/pin-gcc; done
 
 RUN echo 'deb http://archive.ubuntu.com/ubuntu/ noble-proposed restricted main multiverse universe' > /etc/apt/sources.list.d/ubuntu-proposed.list && \
 	apt-get update && \
 	apt-get -y --no-install-recommends install \
 		cmake \
-		g++-13 \
+		g++-13/noble-proposed \
 		git \
 		kmod \
 		libc6-dev \
