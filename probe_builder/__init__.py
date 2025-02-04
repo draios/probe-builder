@@ -205,6 +205,7 @@ def build(builder_image_prefix,
         print("-" * len(l))
 
         for release, future in kernels_futures:
+            drel, krel = "?", "?"
             try:
                 res = future.result()
                 if res.failed():
@@ -213,7 +214,7 @@ def build(builder_image_prefix,
                         res.kmod_result.build_result_string(),
                         res.ebpf_result.build_result_string()))
             except:
-                print(fstr.format(release, "EXCEPTION", "EXCEPTION"))
+                print(fstr.format(drel, krel, "EXCEPTION", "EXCEPTION"))
                 traceback.print_exc()
 
         print("-" * len(l))
