@@ -5,7 +5,7 @@ FROM ubuntu:noble
 # gcc-13/noble-proposed 13.3.0-6ubuntu2~24.04 amd64
 # gcc-13/noble,now 13.2.0-23ubuntu4 amd64 [installed,automatic]
 
-RUN for pkg in g++-13 gcc-13 g++-13-x86-64-linux-gnu gcc-13-x86-64-linux-gnu cpp-13 cpp-13-x86-64-linux-gnu gcc-13-base libgcc-13-dev libobjc-13-dev libstdc++-13-dev; do \
+RUN for pkg in g++-13* gcc-13* cpp-13* libgcc-13-dev libobjc-13-dev libstdc++-13-dev; do \
 	echo "Package: $pkg\nPin: version 13.3.*\nPin-Priority: 900\n" \
 	>> /etc/apt/preferences.d/pin-gcc; done
 
