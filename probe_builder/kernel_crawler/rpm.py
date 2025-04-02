@@ -37,7 +37,8 @@ class RpmRepository(repo.Repository):
 
     @classmethod
     def kernel_package_query(cls):
-        return '''name IN ('kernel', 'kernel-devel') AND arch NOT IN ('src')'''
+        # XXX kernel6.12 is needed by AmazonLinux 2023.7.20250331
+        return '''name IN ('kernel', 'kernel6.12', 'kernel-devel') AND arch NOT IN ('src')'''
 
     @classmethod
     def build_base_query(cls, filter=''):
