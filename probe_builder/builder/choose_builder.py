@@ -11,6 +11,7 @@ AUTOCONF_RE = re.compile('^#define CONFIG_GCC_VERSION ([0-9][0-9]?)([0-9][0-9])(
 LINUX_COMPILER_RE = re.compile('^#define LINUX_COMPILER "gcc version ([0-9.]+)')
 FEDORA_KERNEL_RE = re.compile(r'.*\.(fc[0-9]+)\..*Kernel Configuration$')
 AMAZONLINUX2_KERNEL_RE = re.compile(r'.*\.amzn2\..*Kernel Configuration$')
+AMAZONLINUX2023_KERNEL_RE = re.compile(r'.*\.amzn2023\..*Kernel Configuration$')
 
 
 def get_kernel_distro_tag(kernel_dir):
@@ -33,6 +34,9 @@ def get_kernel_distro_tag(kernel_dir):
                 m = AMAZONLINUX2_KERNEL_RE.match(line)
                 if m:
                     return 'amzn2'
+                m = AMAZONLINUX2023_KERNEL_RE.match(line)
+                if m:
+                    return 'amzn2023'
     except IOError:
         pass
 
