@@ -7,7 +7,7 @@ import click
 
 from probe_builder.kernel_crawler import crawl_kernels, DISTROS
 from . import kernel_crawler, disable_ipv6, git, docker
-from .builder import choose_builder, builder_image, ignorelist
+from .builder import choose_builder, builder_image, ignorelist, kernelcache
 from .builder.distro import Distro
 from .context import Context, Workspace, Probe, DownloadConfig
 from concurrent.futures import ThreadPoolExecutor
@@ -162,7 +162,30 @@ def build(builder_image_prefix,
 
     crawler_filter = kernel_crawler.repo.CrawlerFilter(machine=machine, arch=arch, distro_filter=distro_filter, kernel_filter=kernel_filter)
 
-    kernels = distro_obj.get_kernels(workspace, package, download_config, crawler_filter)
+    # Look up the cache to see if we have already performed a crawl for this combination of:
+    # - kernel_type (i.e. ubuntu, amazonlinux, ...)
+    # - machine (x86_64, ...)
+    # - NO NEED TO INCLUDE arch as it would be redundant
+    # - distro_filter (e.g. "resolute" for ubuntu resolute
+    # - kernel_filter (e.g. "5.15" to only include kernels starting with 5.15)
+
+    cache_file = "kernelcache.yaml"  # Notice the cache file would live in the cwd, i.e. /workspace
+    cache = kernelcache.KernelCache(cache_file)
+    cache_key = kernelcache.KernelCache.make_key(kernel_type, machine, distro_filter, kernel_filter)
+    print("Looking up {} in cache".format(cache_key))
+
+    ### ...and also make sure the entry is not too old (e.g. more than 20 hours old) to avoid using stale data
+    cache_entry = cache.get(cache_key, max_duration_hours=20)
+
+    if cache_entry is not None:
+        # If we had a cache hit, use the cached kernels...
+        kernels = cache_entry
+    else:
+        ### ... otherwise, perform the crawl and update the cache
+        kernels = distro_obj.get_kernels(workspace, package, download_config, crawler_filter)
+        cache.put(cache_key, kernels)
+        cache.save()
+
     kernel_dirs = distro_builder.unpack_kernels(workspace, distro.distro, kernels)
 
     with ThreadPoolExecutor(max_workers=jobs) as executor:
