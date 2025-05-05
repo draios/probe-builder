@@ -320,8 +320,10 @@ build_kernel_probe() {
 				echo "* Found ${ko_file}; trying to insmod"
 				if insmod $ko_file > /dev/null 2>&1; then
 					echo "  ${PROBE_NAME}.${ext} found and loaded in dkms"
-					echo "* Tentatively running dkms install for ${PACKAGE_NAME}, all errors will be ignored"
+					echo "* Tentatively running dkms install for ${PACKAGE_NAME}"
 					dkms install -m "${PACKAGE_NAME}" -v "${SYSDIG_VERSION}" -k "${KERNEL_RELEASE}"
+					echo "* ********************************************"
+
 					return 0
 				fi
 			fi
