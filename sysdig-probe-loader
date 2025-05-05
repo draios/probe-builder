@@ -306,10 +306,10 @@ download_kernel_probe() {
 # Returns 0 on success, 1 otherwise.
 #
 build_kernel_probe() {
-	echo "* Running dkms install for ${PACKAGE_NAME}"
+	echo "* Running dkms build for ${PACKAGE_NAME}"
 
-	if dkms install -m "${PACKAGE_NAME}" -v "${SYSDIG_VERSION}" -k "${KERNEL_RELEASE}"; then
-		echo "  dkms install done"
+	if dkms build -m "${PACKAGE_NAME}" -v "${SYSDIG_VERSION}" -k "${KERNEL_RELEASE}"; then
+		echo "  dkms build done"
 
 		echo "* Trying to load the dkms ${PROBE_NAME} via insmod"
 		# Try all possible extensions a kernel module built by dkms can have
@@ -320,6 +320,8 @@ build_kernel_probe() {
 				echo "* Found ${ko_file}; trying to insmod"
 				if insmod $ko_file > /dev/null 2>&1; then
 					echo "  ${PROBE_NAME}.${ext} found and loaded in dkms"
+					echo "* Tentatively running dkms install for ${PACKAGE_NAME}, all errors will be ignored"
+					dkms install -m "${PACKAGE_NAME}" -v "${SYSDIG_VERSION}" -k "${KERNEL_RELEASE}"
 					return 0
 				fi
 			fi
