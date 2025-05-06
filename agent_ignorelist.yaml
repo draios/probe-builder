@@ -65,7 +65,7 @@ ignorelist:
     skip_if: "{{ (version == '5.14.0' and (rpmrelver|int) >= 410) }}"
 
   - description: "[SMAGENT-8627] kernel 5.14 - RHEL backport: mnt_idmap for fs"
-    probe_versions: [ 13.4.0, 13.4.1, 13.5.0, 13.6.0, 13.6.1, 13.7.0, 13.7.1, 13.7.2 ]
+    probe_versions: [ 13.1.0, 13.1.1, 13.2.0, 13.2.1, 13.3.0, 13.3.1, 13.3.2, 13.3.3, 13.4.0, 13.4.1, 13.5.0, 13.6.0, 13.6.1, 13.7.0, 13.7.1, 13.7.2 ]
     probe_kinds: [ kmod ]
     matcher: redhat
     skip_if: "{{ (version == '5.14.0' and (rpmrelver|int) >= 542) }}"
