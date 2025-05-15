@@ -2,6 +2,7 @@
 matchers:
   redhat: ^(?P<version>[0-9]\.[0-9]+\.[0-9]+)-(?P<rpmrelver>[0-9]+)(?P<rpmrelpatch>(\.[0-9]+)*)\.(?P<rhel>el.*)\.(?P<arch>[a-z0-9-_]+)$
   generic: ^(?P<major>[0-9])\.(?P<minor>[0-9]+)\..*
+  generic_aarch64: ^(?P<major>[0-9])\.(?P<minor>[0-9]+)\..*\.aarch64$
 
 ignorelist:
   - description: "Kernel 6.7 on agent <= 12.19.0"
@@ -88,3 +89,9 @@ ignorelist:
     probe_kinds: [ legacy_ebpf ]
     matcher: generic
     skip_if: "{{ major|int == 6 and minor|int >= 11 }}"
+
+  - description: "kernel 6.12...aarch64 error: unterminated function-like macro invocation time.tv_nsec = _READ((inode->i_ctime_nsec);"
+    probe_versions: [ 13.5.0 ]
+    probe_kinds: [ legacy_ebpf ]
+    matcher: generic_aarch64
+    skip_if: "{{ (major|int > 6) or (major|int == 6 and minor|int >= 12) }}"
