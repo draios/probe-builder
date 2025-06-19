@@ -95,3 +95,9 @@ ignorelist:
     probe_kinds: [ legacy_ebpf ]
     matcher: generic_aarch64
     skip_if: "{{ (major|int > 6) or (major|int == 6 and minor|int >= 12) }}"
+
+  - description: "kernel 6.15 error: no member named 'parent' in 'struct kernfs_node' [SMAGENT-9355]"
+    probe_versions: [ 13.5.0, 13.6.0, 13.6.1, 13.7.0, 13.7.1, 13.7.2, 13.8.0, 13.8.1, 13.9.0, 13.9.1, 13.9.2, 14.0.0 ]
+    probe_kinds: [ legacy_ebpf ]
+    matcher: generic
+    skip_if: "{{ (major|int > 6) or (major|int == 6 and minor|int >= 15) }}"
