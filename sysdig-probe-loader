@@ -89,6 +89,18 @@
 # - Allows the user (or build script) to override only the DOWNLOAD_REPOSITORY value
 #   from item B above, to specify a top-level directory (e.g. "dev" instead of "stable")
 # - While retaining/mimicing the standard Sysdig directory structure and filename format
+#
+# 4) Download behavior customization variables:
+# SYSDIG_PROBE_DOWNLOAD_MAX_RETRIES
+# - Number of retry attempts for failed downloads (default: 3)
+# - Set to 0 to disable retries
+#
+# SYSDIG_PROBE_DOWNLOAD_RETRY_DELAY
+# - Delay in seconds between retry attempts (default: 2)
+#
+# SYSDIG_PROBE_DOWNLOAD_TIMEOUT
+# - Maximum time in seconds for the entire download operation (default: 300)
+# - Includes connection time, transfer time, and retries
 
 
 #
@@ -270,34 +282,65 @@ load_precompiled_kernel_probe() {
 
 
 #
+# Common download function for both kmod and BPF probes.
+# Parameters: probe_filename, probe_name, description
+# Returns 0 on success, 1 otherwise (download failed).
+#
+download_probe_common() {
+	local probe_filename="$1"
+	local probe_name="$2"
+	local description="$3"
+
+	echo "* Trying to download ${description} from ${URL}"
+
+	local max_retries=${SYSDIG_PROBE_DOWNLOAD_MAX_RETRIES:-3}
+	local retry_delay=${SYSDIG_PROBE_DOWNLOAD_RETRY_DELAY:-2}
+	local timeout=${SYSDIG_PROBE_DOWNLOAD_TIMEOUT:-300}
+
+	local curl_options="${SYSDIG_PROBE_CURL_OPTIONS} \
+		--retry ${max_retries} \
+		--retry-delay ${retry_delay} \
+		--retry-connrefused \
+		--max-time ${timeout} \
+		--create-dirs \
+		-w '%{response_code}\n'"
+
+	response_code=$(curl ${curl_options} -o "${HOME}/.sysdig/${probe_filename}" "${URL}" 2>&1)
+	curl_exit_code=$?
+
+	if [ ${curl_exit_code} -eq 0 ]; then
+		# Verify file was actually downloaded and has content
+		if [ -s "${HOME}/.sysdig/${probe_filename}" ]; then
+			echo "  Download succeeded ($(stat -c%s "${HOME}/.sysdig/${probe_filename}" 2>/dev/null || echo "unknown") bytes)"
+			return 0
+		fi
+	fi
+
+	# Deal with error condition
+	curl_exit_code="exit code: ${curl_exit_code}"
+	[ -n "$response_code" ] && response_code=", response code: ${response_code}"
+	echo "Download of ${probe_name} for version ${SYSDIG_VERSION} failed (${curl_exit_code}${response_code})."
+
+	# Provide additional context
+	if [ ! -z "${KERNEL_ERR_MESSAGE}" ]; then
+		echo "${KERNEL_ERR_MESSAGE}"
+	else
+		echo "Consider compiling your own ${probe_name} and loading it or getting in touch with the Sysdig community."
+	fi
+
+	# Clean up any partial download
+	[ -f "${HOME}/.sysdig/${probe_filename}" ] && rm -f "${HOME}/.sysdig/${probe_filename}"
+
+	return 1
+}
+
+
+#
 # Downloads a precompiled kernel probe for the current kernel.
 # Returns 0 on success, 1 otherwise (download failed).
 #
 download_kernel_probe() {
-	echo "* Trying to download precompiled module from ${URL}"
-
-	curl_out=$(curl --create-dirs "${SYSDIG_PROBE_CURL_OPTIONS}" -o "${HOME}/.sysdig/${SYSDIG_PROBE_FILENAME}" "${URL}" 2>&1)
-	if [ "$?" = "0" ]; then
-		echo "  Download succeeded"
-		return 0
-	fi
-
-	echo "Download of ${PROBE_NAME} for version ${SYSDIG_VERSION} failed."
-
-	# "curl: (22) The requested URL returned error: 404 Not Found" - The probe doesn't exist in the repo.
-	if [[ "$curl_out" =~ "404 Not Found" ]]; then
-		echo  "The probe for this version does not exist in the repo."
-		# Enriches error message
-		if [ ! -z "${KERNEL_ERR_MESSAGE}" ]; then
-			echo "${KERNEL_ERR_MESSAGE}"
-		else
-			echo "Consider compiling your own ${PROBE_NAME} and loading it or getting in touch with the Sysdig community."
-		fi
-	else
-		echo "$curl_out"
-	fi
-
-	return 1
+	download_probe_common "${SYSDIG_PROBE_FILENAME}" "${PROBE_NAME}" "precompiled module"
 }
 
 
@@ -466,17 +509,7 @@ function make_symlink_bpf_probe() {
 # Returns 0 on success, 1 otherwise.
 #
 download_bpf_probe() {
-	echo "* Trying to download precompiled BPF probe from ${URL}"
-
-	curl --create-dirs "${SYSDIG_PROBE_CURL_OPTIONS}" -o "${HOME}/.sysdig/${BPF_PROBE_FILENAME}" "${URL}"
-
-	if [ ! -f "${HOME}/.sysdig/${BPF_PROBE_FILENAME}" ]; then
-		echo "  Download failed"
-		return 1
-	fi
-
-	echo "  Download succeeded"
-	return 0
+	download_probe_common "${BPF_PROBE_FILENAME}" "${BPF_PROBE_NAME}" "precompiled BPF probe"
 }
 
 
