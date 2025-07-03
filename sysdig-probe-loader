@@ -270,19 +270,29 @@ load_precompiled_kernel_probe() {
 
 
 #
-# Downloads a precompiled kernel probe for the current kernel.
+# Downloads a precompiled probe for the current kernel.
+# Parameters:
+#   $1 - probe_type: descriptive name for the probe type (e.g., "module", "BPF probe")
+#   $2 - probe_filename: filename of the probe to download
+#   $3 - probe_name: name of the probe for error messages
+#   $4 - url: download URL
 # Returns 0 on success, 1 otherwise (download failed).
 #
-download_kernel_probe() {
-	echo "* Trying to download precompiled module from ${URL}"
+download_probe_common() {
+	local probe_type="$1"
+	local probe_filename="$2"
+	local probe_name="$3"
+	local url="$4"
 
-	curl_out=$(curl --create-dirs "${SYSDIG_PROBE_CURL_OPTIONS}" -o "${HOME}/.sysdig/${SYSDIG_PROBE_FILENAME}" "${URL}" 2>&1)
+	echo "* Trying to download precompiled ${probe_type} from ${url}"
+
+	curl_out=$(curl --create-dirs "${SYSDIG_PROBE_CURL_OPTIONS}" -o "${HOME}/.sysdig/${probe_filename}" "${url}" 2>&1)
 	if [ "$?" = "0" ]; then
 		echo "  Download succeeded"
 		return 0
 	fi
 
-	echo "Download of ${PROBE_NAME} for version ${SYSDIG_VERSION} failed."
+	echo "Download of ${probe_name} for version ${SYSDIG_VERSION} failed."
 
 	# "curl: (22) The requested URL returned error: 404 Not Found" - The probe doesn't exist in the repo.
 	if [[ "$curl_out" =~ "404 Not Found" ]]; then
@@ -291,13 +301,22 @@ download_kernel_probe() {
 		if [ ! -z "${KERNEL_ERR_MESSAGE}" ]; then
 			echo "${KERNEL_ERR_MESSAGE}"
 		else
-			echo "Consider compiling your own ${PROBE_NAME} and loading it or getting in touch with the Sysdig community."
+			echo "Consider compiling your own ${probe_name} and loading it or getting in touch with the Sysdig community."
 		fi
 	else
 		echo "$curl_out"
 	fi
 
 	return 1
+}
+
+
+#
+# Downloads a precompiled kernel probe for the current kernel.
+# Returns 0 on success, 1 otherwise (download failed).
+#
+download_kernel_probe() {
+	download_probe_common "module" "${SYSDIG_PROBE_FILENAME}" "${PROBE_NAME}" "${URL}"
 }
 
 
@@ -466,17 +485,7 @@ function make_symlink_bpf_probe() {
 # Returns 0 on success, 1 otherwise.
 #
 download_bpf_probe() {
-	echo "* Trying to download precompiled BPF probe from ${URL}"
-
-	curl --create-dirs "${SYSDIG_PROBE_CURL_OPTIONS}" -o "${HOME}/.sysdig/${BPF_PROBE_FILENAME}" "${URL}"
-
-	if [ ! -f "${HOME}/.sysdig/${BPF_PROBE_FILENAME}" ]; then
-		echo "  Download failed"
-		return 1
-	fi
-
-	echo "  Download succeeded"
-	return 0
+	download_probe_common "BPF probe" "${BPF_PROBE_FILENAME}" "${BPF_PROBE_NAME}" "${URL}"
 }
 
 
