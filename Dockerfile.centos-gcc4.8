@@ -1,5 +1,9 @@
 FROM centos:7
 
+ARG TARGETARCH
+
+ADD centos7-${TARGETARCH}-repos/* /etc/yum.repos.d/
+
 RUN yum -y install \
 	wget \
 	git \
