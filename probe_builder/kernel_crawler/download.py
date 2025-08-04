@@ -1,5 +1,6 @@
 import bz2
 import zlib
+import zstandard
 import requests
 import traceback
 import shutil
@@ -117,8 +118,15 @@ def get_url(url):
         return lzma.decompress(resp.content)
     elif url.endswith('.bz2'):
         return bz2.decompress(resp.content)
-    else:
+    elif url.endswith('.zst'):
+        dctx = zstandard.ZstdDecompressor()
+        reader = dctx.stream_reader(resp.content)
+        # Read the entire decompressed content
+        return reader.read()
+    elif url.endswith('.sqlite') or url.endswith('.xml'):
         return resp.content
+    else:
+        raise ValueError('Unsupported file format for {}'.format(url))
 
 
 def get_first_of(urls):

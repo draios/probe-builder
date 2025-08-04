@@ -16,6 +16,7 @@ setup(name='probe_builder',
           'jinja2',
           'PyYAML',
           'tenacity==8.3.*',
+          'zstandard',
       ],
       entry_points={
           'console_scripts': [
