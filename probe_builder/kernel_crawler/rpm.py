@@ -51,7 +51,7 @@ class RpmRepository(repo.Repository):
             return base_query + ''' AND (version = ? OR version || '-' || "release" = ?)''', (filter, filter)
 
     @classmethod
-    def parse_repo_db(cls, repo_db, filter=''):
+    def parse_repo_db(cls, repo_db, filter='', origin_url='?'):
         db = sqlite3.connect(repo_db)
         cursor = db.cursor()
 
@@ -66,8 +66,11 @@ class RpmRepository(repo.Repository):
             ) SELECT transitive_deps.version, location_href FROM packages INNER JOIN transitive_deps using(pkgkey);
         '''.format(base_query)
 
-        cursor.execute(query, args)
-        return cursor.fetchall()
+        try:
+            cursor.execute(query, args)
+            return cursor.fetchall()
+        except sqlite3.Error as e:
+            raise ValueError("Error parsing repo db at {}: {}".format(origin_url, e))
 
     def get_repodb_url(self):
         repomd_url = self.base_url + 'repodata/repomd.xml'
@@ -90,7 +93,7 @@ class RpmRepository(repo.Repository):
         with tempfile.NamedTemporaryFile() as tf:
             tf.write(repodb)
             tf.flush()
-            for pkg in self.parse_repo_db(tf.name, crawler_filter.kernel_filter):
+            for pkg in self.parse_repo_db(tf.name, crawler_filter.kernel_filter, repodb_url):
                 version, url = pkg
                 packages.setdefault(version, set()).add(self.base_url + url)
         return packages
