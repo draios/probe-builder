@@ -123,10 +123,8 @@ def get_url(url):
         reader = dctx.stream_reader(resp.content)
         # Read the entire decompressed content
         return reader.read()
-    elif url.endswith('.sqlite') or url.endswith('.xml'):
-        return resp.content
     else:
-        raise ValueError('Unsupported file format for {}'.format(url))
+        return resp.content
 
 
 def get_first_of(urls):
