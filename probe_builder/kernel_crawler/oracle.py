@@ -30,6 +30,7 @@ class Oracle7Mirror(repo.Mirror):
         'http://yum.oracle.com/repo/OracleLinux/OL7/MODRHCK/{}/',
         'http://yum.oracle.com/repo/OracleLinux/OL7/UEKR6/{}/',
         'http://yum.oracle.com/repo/OracleLinux/OL7/UEKR5/{}/',
+        'http://yum.oracle.com/repo/OracleLinux/OL7/UEKR5/archive/{}/',
         'http://yum.oracle.com/repo/OracleLinux/OL7/UEKR4/{}/',
         'http://yum.oracle.com/repo/OracleLinux/OL7/UEKR3/{}/',
     ]
