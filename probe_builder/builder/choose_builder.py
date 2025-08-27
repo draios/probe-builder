@@ -47,8 +47,9 @@ def choose_distro_dockerfile(builder_source, _builder_distro, kernel_dir):
     if distro_tag is None:
         return
 
-    # if we have a distro tag (e.g. fc34), look for that exact Dockerfile.fc34* (modulo the -bpf suffix)
-    dockerfile = os.path.join(builder_source, 'Dockerfile.{}'.format(distro_tag))
+    # if we have a distro tag (e.g. fc34), look for that exact Dockerfile.fc34-* (modulo the -bpf suffix)
+    # notice how we need the "-" to distinguish between amzn2 and amzn2023
+    dockerfile = os.path.join(builder_source, 'Dockerfile.{}-'.format(distro_tag))
     m = glob.glob(dockerfile+'*')
     if m:
         fn = m[0]
