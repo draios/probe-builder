@@ -129,6 +129,9 @@ class RpmMirror(repo.Mirror):
         doc = html.fromstring(dists, self.base_url)
         dists = doc.xpath('/html/body//a[not(@href="../")]/@href')
 
+        # On 2025-10-09 Almalinux started adding ./ prefix to all paths -- remove it if present
+        dists = [d[2:] if d.startswith('./') else d for d in dists]
+
         fdists = [dist for dist in dists
                 if dist.endswith('/')
                 and not dist.startswith('/')
