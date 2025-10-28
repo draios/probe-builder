@@ -1,5 +1,6 @@
 # Ignorelist for known versions of sysdig agent (sysdigcloud-probe)
 matchers:
+  ubuntu_nvidia: ^(?P<version>[0-9]\.[0-9]+\.[0-9]+)-(?P<build>[0-9]+)-(?P<vendor>nvidia)$
   redhat: ^(?P<version>[0-9]\.[0-9]+\.[0-9]+)-(?P<rpmrelver>[0-9]+)(?P<rpmrelpatch>(\.[0-9]+)*)\.(?P<rhel>el.*)\.(?P<arch>[a-z0-9-_]+)$
   generic: ^(?P<major>[0-9])\.(?P<minor>[0-9]+)\..*
   generic_aarch64: ^(?P<major>[0-9])\.(?P<minor>[0-9]+)\..*\.aarch64$
@@ -101,3 +102,10 @@ ignorelist:
     probe_kinds: [ legacy_ebpf ]
     matcher: generic
     skip_if: "{{ (major|int > 6) or (major|int == 6 and minor|int >= 15) }}"
+
+  # Please note: this is the same as above, but for 6.14.0-1012-nvidia build
+  - description: "kernel 6.14.0-1012-nvidia error: no member named 'parent' in 'struct kernfs_node' [SMAGENT-9355]"
+    probe_versions: [ 13.5.0, 13.6.0, 13.6.1, 13.7.0, 13.7.1, 13.7.2, 13.8.0, 13.8.1, 13.9.0, 13.9.1, 13.9.2, 14.0.0 ]
+    probe_kinds: [ legacy_ebpf ]
+    matcher: ubuntu_nvidia
+    skip_if: "{{ (version == '6.14.0') and (build == '1012') and (vendor == 'nvidia') }}"
