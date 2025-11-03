@@ -108,4 +108,4 @@ ignorelist:
     probe_versions: [ 13.5.0, 13.6.0, 13.6.1, 13.7.0, 13.7.1, 13.7.2, 13.8.0, 13.8.1, 13.9.0, 13.9.1, 13.9.2, 14.0.0 ]
     probe_kinds: [ legacy_ebpf ]
     matcher: ubuntu_nvidia
-    skip_if: "{{ (version == '6.14.0') and (build == '1012') and (vendor == 'nvidia') }}"
+    skip_if: "{{ (version == '6.14.0') and (build|int >= 1012) and (vendor == 'nvidia') }}"
