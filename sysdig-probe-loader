@@ -613,7 +613,12 @@ build_bpf_probe() {
 
 	echo "  Trying to compile BPF probe ${BPF_PROBE_NAME} (${BPF_PROBE_FILENAME})"
 
-	make -C "/usr/src/${PACKAGE_NAME}-${SYSDIG_VERSION}/bpf" > /dev/null
+	make -C "/usr/src/${PACKAGE_NAME}-${SYSDIG_VERSION}/bpf" > "/usr/src/${PACKAGE_NAME}-${SYSDIG_VERSION}/bpf/probe_build.log" 2>&1
+	if [ $? -ne 0 ]; then
+		echo "  BPF probe build failed, dumping /usr/src/${PACKAGE_NAME}-${SYSDIG_VERSION}/bpf/probe_build.log"
+		cat "/usr/src/${PACKAGE_NAME}-${SYSDIG_VERSION}/bpf/probe_build.log"
+		return 0
+	fi
 
 	mkdir -p ~/.sysdig
 	mv "/usr/src/${PACKAGE_NAME}-${SYSDIG_VERSION}/bpf/probe.o" "${HOME}/.sysdig/${BPF_PROBE_FILENAME}"
