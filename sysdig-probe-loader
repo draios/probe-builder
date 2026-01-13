@@ -548,15 +548,18 @@ build_bpf_probe() {
 			popd > /dev/null
 
 			# Might need to configure our own sources depending on COS version
-			cos_ver=${BUILD_ID}
-			base_ver=11553.0.0
+			# NOTE: from kernel 6.12 onwards (COS version 19216.0.0), the workaround
+			# is harmful. Since we already have the checks in place in the legacy eBPF
+			# driver setting COS_73_WORKAROUND, this part of the code has been disabled.
+			#cos_ver=${BUILD_ID}
+			#base_ver=11553.0.0
 
-			cos_version_greater
-			greater_ret=$?
+			#cos_version_greater
+			#greater_ret=$?
 
-			if [[ greater_ret -eq 1 ]]; then
-				export KBUILD_EXTRA_CPPFLAGS=-DCOS_73_WORKAROUND
-			fi
+			#if [[ greater_ret -eq 1 ]]; then
+			#	export KBUILD_EXTRA_CPPFLAGS=-DCOS_73_WORKAROUND
+			#fi
 		}
 	fi
 
