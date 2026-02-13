@@ -50,7 +50,7 @@ class KernelIgnoreList:
 
 
 ## =========== Test code =============
-_test_ignorelist = """\
+_test_ignorelist = r"""\
 matchers:
   redhat: ^(?P<version>[0-9]\.[0-9]+\.[0-9]+)-(?P<rpmrelver>[0-9]+)(?P<rpmrelpatch>(\.[0-9]+)*)\.(?P<rhel>el.*)\.(?P<arch>[a-z0-9-_]+)$
   generic: ^(?P<major>[0-9])\.(?P<minor>[0-9]+)\..*
