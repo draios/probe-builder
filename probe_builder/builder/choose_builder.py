@@ -140,7 +140,7 @@ def choose_gcc_dockerfile(builder_source, builder_distro, kernel_dir):
     prefix = 'Dockerfile.{}-gcc'.format(builder_distro)
     # build a regex from which we can extract all available gcc versions
     # NOTE: for now we're having the consumer figure the logic by itself
-    regex = re.compile('^' + re.escape(prefix) + '(?P<gccver>[0-9]+\.[0-9]+)(?P<bpf>(\-bpf)?)$')
+    regex = re.compile('^' + re.escape(prefix) + r'(?P<gccver>[0-9]+\.[0-9]+)(?P<bpf>(\-bpf)?)$')
 
     # build a list of (filename, [GCC-]Version, support_bpf) tuples
     dockerfile_versions = [
