@@ -1,4 +1,4 @@
-FROM alpine:3.16
+FROM alpine:3.22
 
 ARG TARGETARCH
 
@@ -21,10 +21,8 @@ RUN apk add \
 	docker-cli-buildx \
     docker
 
-RUN ln -s /usr/bin/python3 /usr/bin/python
-
 ADD . /builder
 WORKDIR /builder
-RUN /usr/bin/pip install -e .
+RUN /usr/bin/pip install --break-system-packages -e .
 ENTRYPOINT [ "/builder/main-builder-entrypoint.sh" ]
 
