@@ -5,9 +5,11 @@ import yaml
 logger = logging.getLogger(__name__)
 
 class KernelCache:
-    def __init__(self, cachefile):
+    def __init__(self, cachefile, load_cache=True):
         self.cachefile = cachefile
-        self.load()
+        self.cache = {}
+        if load_cache:
+            self.load()
 
     def load(self):
         self.cache = {}
