@@ -25,9 +25,12 @@ class KernelCache:
             logger.warning("failed to parse cache file {}: {}".format(self.cachefile, e))
 
     def save(self):
-        with open(self.cachefile, mode="w") as fp:
-            yaml.dump(self.cache, fp, default_flow_style=False)
-        logger.debug("cache saved to {}".format(self.cachefile))
+        try:
+            with open(self.cachefile, mode="w") as fp:
+                yaml.dump(self.cache, fp, default_flow_style=False)
+            logger.debug("cache saved to {}".format(self.cachefile))
+        except IOError as e:
+            logger.warning("failed to save cache file {}: {}".format(self.cachefile, e))
 
     @staticmethod
     def make_key(kernel_type, machine, distro_filter, kernel_filter):
