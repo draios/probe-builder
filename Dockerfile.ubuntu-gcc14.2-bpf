@@ -1,12 +1,12 @@
 FROM ubuntu:noble
 
-# Note: as of Aug-2024, ubuntu noble returns:
+# Note: as of Feb-2026, ubuntu noble (without proposed) returns:
 # $ apt list -a gcc-14
-# gcc-14/noble,now 14-20240412-0ubuntu1 amd64 [installed,automatic]
-# $ gcc --version
-# gcc (Ubuntu 14-20240412-0ubuntu1) 14.0.1 20240412 (experimental) [master r14-9935-g67e1433a94f]
+# gcc-14/noble-updates 14.2.0-4ubuntu2~24.04.1 amd64
+# gcc-14/noble-security 14.2.0-4ubuntu2~24.04 amd64
+# gcc-14/noble 14-20240412-0ubuntu1 amd64
 
-RUN echo 'deb http://archive.ubuntu.com/ubuntu/ noble-proposed restricted main multiverse universe' > /etc/apt/sources.list.d/ubuntu-proposed.list && \
+RUN \
 	apt-get update && \
 	apt-get -y --no-install-recommends install \
 		cmake \
