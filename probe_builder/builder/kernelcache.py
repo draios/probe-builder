@@ -55,7 +55,7 @@ class KernelCache:
 
     def put(self, key, kernels):
         if key in self.cache:
-            logger.debug("cache entry {} already exists".format(key))
+            logger.debug("updating cache entry {}".format(key))
         else:
             logger.debug("adding cache entry {}".format(key))
         self.cache[key] = { "ts": int(time.time()), "kernels": kernels }
