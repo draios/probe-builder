@@ -1,4 +1,4 @@
-FROM alpine:3.22
+FROM us-docker.pkg.dev/sysdig-artifact-registry-dev/gar-docker/mirror/alpine:3.22
 
 ARG TARGETARCH
 
