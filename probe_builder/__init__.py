@@ -189,8 +189,11 @@ def build(builder_image_prefix,
         ### ... otherwise, perform the crawl and update the cache
         kernels = distro_obj.get_kernels(workspace, package, download_config, crawler_filter)
         if update_cache:
-            cache.put(cache_key, kernels)
-            cache.save()
+            if not kernels:
+                print("No kernels found for the specified filters -- probably an error occurred, NOT saving empty result to cache")
+            else:
+                cache.put(cache_key, kernels)
+                cache.save()
         else:
             print("Cache update disabled, skipping cache update")
 
