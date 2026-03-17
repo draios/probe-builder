@@ -288,10 +288,10 @@ build_kernel_probe() {
 			ko_file="/var/lib/dkms/${PACKAGE_NAME}/${SYSDIG_VERSION}/${KERNEL_RELEASE}/${ARCH}/module/${PROBE_NAME}.${ext}"
 			echo "* Looking for ${ko_file}"
 			if [ -f $ko_file ]; then
-				# Fix SELinux context if SELinux is enabled (SLES 16+, RHEL, etc.)
+				# Set proper SELinux context where needed (SLES 16+, RHEL, etc.)
 				if command -v chcon > /dev/null 2>&1 && command -v selinuxenabled > /dev/null 2>&1; then
 					if selinuxenabled 2>/dev/null; then
-						echo "* Fixing SELinux context for ${ko_file}"
+						echo "* Setting SELinux context for ${ko_file}"
 						chcon -t modules_object_t "${ko_file}" 2>/dev/null || true
 					fi
 				fi
