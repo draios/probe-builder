@@ -109,3 +109,10 @@ ignorelist:
     probe_kinds: [ legacy_ebpf ]
     matcher: ubuntu_nvidia
     skip_if: "{{ (version == '6.14.0') and (build|int >= 1012) and (vendor == 'nvidia') }}"
+
+  # Please note: this is the same as above, but for RHEL9.8 kernels
+  - description: "kernel 5.14.0-x.y.z.el9_8 error: no member named 'parent' in 'struct kernfs_node' [SMAGENT-9355]"
+    probe_versions: [ 13.5.0, 13.6.0, 13.6.1, 13.7.0, 13.7.1, 13.7.2, 13.8.0, 13.8.1, 13.9.0, 13.9.1, 13.9.2, 14.0.0 ]
+    probe_kinds: [ legacy_ebpf ]
+    matcher: redhat
+    skip_if: "{{ (version == '5.14.0' and (rpmrelver|int)>=687) }}"
