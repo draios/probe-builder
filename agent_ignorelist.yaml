@@ -116,3 +116,10 @@ ignorelist:
     probe_kinds: [ legacy_ebpf ]
     matcher: redhat
     skip_if: "{{ (version == '5.14.0' and (rpmrelver|int)>=687) }}"
+
+  - description: "kernel 5.14.0-687.y.z.el9_8.s390x error: lvalue required as left operand of assignment pgprot_val(vma->vm_page_prot)"
+    probe_versions: [ 13.9.0, 13.9.1, 13.9.2, 14.0.0, 14.0.1, 14.1.0, 14.1.1, 14.2.0, 14.2.1, 14.2.2, 14.2.3, 14.2.4, 14.2.5, 14.3.0, 14.3.1, 14.3.2, 14.4.0, 14.4.1, 14.5.0, 14.5.1 ]
+    probe_kinds: [ kmod ]
+    matcher: redhat
+    skip_if: "{{ (version == '5.14.0' and (rpmrelver|int)>=687) and arch == 's390x' }}"
+
