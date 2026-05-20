@@ -90,6 +90,7 @@ CLI_DISTROS = {
     'CentOS': CrawlDistro('centos', 'centos', 'CentOS'),
     'CentOSStream': CrawlDistro('centosstream', 'centos', 'CentOSStream'),
     'Debian': CrawlDistro('debian', 'debian', 'Debian'),
+    'EulerOS': CrawlDistro('euleros', 'centos', 'EulerOS'),
     'Fedora': CrawlDistro('fedora', 'centos', 'Fedora'),
     'Flatcar': CrawlDistro('flatcar', 'flatcar', 'Flatcar'),
     'Oracle6': CrawlDistro('oracle6', 'oracle', 'Oracle6'),
