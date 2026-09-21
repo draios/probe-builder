@@ -118,7 +118,8 @@ class DebRepository(repo.Repository):
                         cache[dep] = deps
                     dependencies |= cache[dep]
             else:
-                raise (IncompletePackageListException("{} not in package list".format(dep)))
+                logger.warning("Dependency {} not found in package list".format(dep))
+                #raise (IncompletePackageListException("{} not in package list".format(dep)))
         return dependencies
 
     @classmethod
