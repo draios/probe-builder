@@ -130,6 +130,7 @@ def prebuild(builder_image_prefix, machine):
 @click.option('-k', '--kernel-type', type=click.Choice(sorted(CLI_DISTROS.keys())))
 @click.option('-R', '--distro-filter', default='')
 @click.option('-f', '--kernel-filter', default='')
+@click.option('-o', '--overwrite', is_flag=True)
 @click.option('-p', '--probe-name')
 @click.option('-r', '--retries', type=click.INT, default=1)
 @click.option('-s', '--source-dir')
@@ -142,7 +143,7 @@ def prebuild(builder_image_prefix, machine):
 @click.argument('package', nargs=-1)
 def build(builder_image_prefix,
           download_concurrency, jobs, kernel_type, distro_filter,
-          kernel_filter, probe_name, retries,
+          kernel_filter, overwrite, probe_name, retries,
           source_dir, download_timeout, probe_version, machine, ignore_list, use_cache, update_cache, package):
     workspace_dir = os.getcwd()
     builder_source = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -203,7 +204,7 @@ def build(builder_image_prefix,
         kernels_futures = []
         for release, target in kernel_dirs:
             drel, krel = release if type(release) is tuple else ("", release)
-            future = executor.submit(distro_builder.build_kernel, kil, workspace, probe, distro.builder_distro, krel, target)
+            future = executor.submit(distro_builder.build_kernel, kil, workspace, probe, distro.builder_distro, krel, target, overwrite)
             kernels_futures.append((release, future))
 
 
