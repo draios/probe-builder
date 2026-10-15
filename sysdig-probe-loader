@@ -354,14 +354,13 @@ load_kernel_probe() {
 	if [ -v SYSDIG_FORCE_DOWNLOAD_PROBE ]; then
 		echo "* Skipping build, FORCE_DOWNLOAD_PROBE is enabled"
 	else
-		# Builds the probe via dkms; skips UEK hosts, the build will always fail
-		if [[ $(uname -r) == *uek* ]]; then
-			echo "* Skipping dkms install for UEK host"
-		else
-			build_kernel_probe
-			if [ $? -eq 0 ]; then
-				return 0
-			fi
+		# Build the probe via dkms. This is also attempted on UEK hosts: when
+		# the matching kernel-uek-devel sources and a compatible gcc are present
+		# (e.g. Oracle Linux / OKE nodes) the build succeeds. If it fails we fall
+		# through to loading a system module or a precompiled probe below.
+		build_kernel_probe
+		if [ $? -eq 0 ]; then
+			return 0
 		fi
 
 		echo "* Trying to load a system ${PROBE_NAME}, if present"
