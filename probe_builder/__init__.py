@@ -86,7 +86,7 @@ CLI_DISTROS = {
     'AlmaLinux': CrawlDistro('almalinux', 'centos', 'AlmaLinux'),
     'AmazonLinux': CrawlDistro('amazonlinux', 'centos', 'AmazonLinux'),
     'AmazonLinux2': CrawlDistro('amazonlinux2', 'centos', 'AmazonLinux2'),
-    'AmazonLinux2022': CrawlDistro('amazonlinux2022', 'centos', 'AmazonLinux2022'),
+    'AmazonLinux2023': CrawlDistro('amazonlinux2023', 'centos', 'AmazonLinux2023'),
     'CentOS': CrawlDistro('centos', 'centos', 'CentOS'),
     'CentOSStream': CrawlDistro('centosstream', 'centos', 'CentOSStream'),
     'Debian': CrawlDistro('debian', 'debian', 'Debian'),

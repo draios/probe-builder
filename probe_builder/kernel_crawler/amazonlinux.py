@@ -12,7 +12,7 @@ from probe_builder.py23 import make_string
 def get_al_repo(repo_root, repo_release):
     repo_pointer = repo_root + repo_release + "/mirror.list"
     resp = get_url(repo_pointer)
-    # Some distributions have a trailing slash (like AmazonLinux2022), some don't.
+    # Some distributions have a trailing slash (like AmazonLinux2023), some don't.
     return make_string(resp.splitlines()[0]).rstrip('/') + '/'
 
 
@@ -54,8 +54,8 @@ class AmazonLinux2Mirror(repo.Mirror):
                 repo_urls.add(get_al_repo("http://amazonlinux.us-east-1.amazonaws.com/2/", r + '/' + crawler_filter.machine))
         return [rpm.RpmRepository(url) for url in sorted(repo_urls)]
 
-class AmazonLinux2022Mirror(repo.Mirror):
-    # Serves AmazonLinux 2023 (AL2022 was a preview release whose repos are no longer available).
+class AmazonLinux2023Mirror(repo.Mirror):
+    # NOTE: AL2022 was a preview release whose repos are no longer available.
     # This was obtained by running:
     # cat /etc/yum.repos.d/amazonlinux.repo
     #[amazonlinux]

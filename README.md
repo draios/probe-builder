@@ -53,6 +53,7 @@ Distributions supported by the kernel crawler:
  - AlmaLinux
  - AmazonLinux
  - AmazonLinux2
+ - AmazonLinux2023
  - CentOS
  - CentOS Stream (8 and 9)
  - Debian
