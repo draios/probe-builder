@@ -23,6 +23,8 @@ RUN apk add \
 
 ADD . /builder
 WORKDIR /builder
+# pip's certifi bundle lacks the emSign root used by some mirrors (e.g. fedora.osuosl.org)
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN /usr/bin/pip install --break-system-packages -e .
 ENTRYPOINT [ "/builder/main-builder-entrypoint.sh" ]
 
