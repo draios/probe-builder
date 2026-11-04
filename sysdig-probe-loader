@@ -721,8 +721,8 @@ elif [ "${SCRIPT_NAME}" = "kestrel-probe-loader" ]; then
 	if [ -z "$SYSDIG_VERSION" ]; then
 		SYSDIG_VERSION=$("${EXEPATH}"/ksagent --version)
 	fi
-	PROBE_NAME="sysdigcloud-probe"
-	BPF_PROBE_NAME="sysdigcloud-probe-bpf"
+	PROBE_NAME="kestrel-probe"
+	BPF_PROBE_NAME="kestrel-probe-bpf"
 	PACKAGE_NAME="kestrel-agent"
 	KESTREL=1
 	if [ -v SYSDIG_FORCE_DOWNLOAD_PROBE ]; then
