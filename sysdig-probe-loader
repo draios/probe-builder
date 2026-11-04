@@ -277,6 +277,15 @@ download_kernel_probe() {
 # Returns 0 on success, 1 otherwise.
 #
 build_kernel_probe() {
+	# The kestrel-agent packages ship the sources without registering them with dkms
+	if [ -n "${KESTREL}" ] && ! dkms status -m "${PACKAGE_NAME}" -v "${SYSDIG_VERSION}" | grep -q .; then
+		echo "* Running dkms add for ${PACKAGE_NAME}"
+		if ! dkms add -m "${PACKAGE_NAME}" -v "${SYSDIG_VERSION}"; then
+			echo "  dkms add failed"
+			return 1
+		fi
+	fi
+
 	echo "* Running dkms build for ${PACKAGE_NAME}"
 
 	if dkms build -m "${PACKAGE_NAME}" -v "${SYSDIG_VERSION}" -k "${KERNEL_RELEASE}"; then
@@ -362,6 +371,13 @@ load_kernel_probe() {
 			if [ $? -eq 0 ]; then
 				return 0
 			fi
+		fi
+
+		# Kestrel only uses the module it builds: a system or precompiled one may well be
+		# another agent's, and it never downloads one
+		if [ -n "${KESTREL}" ]; then
+			echo "* Cannot build ${PROBE_NAME} from /usr/src/${PACKAGE_NAME}-${SYSDIG_VERSION}"
+			return 1
 		fi
 
 		echo "* Trying to load a system ${PROBE_NAME}, if present"
@@ -698,6 +714,23 @@ if [ "${SCRIPT_NAME}" = "sysdig-probe-loader" ]; then
 	PROBE_NAME="sysdig-probe"
 	BPF_PROBE_NAME="sysdig-probe-bpf"
 	PACKAGE_NAME="sysdig"
+elif [ "${SCRIPT_NAME}" = "kestrel-probe-loader" ]; then
+	# The Kestrel agent: it only builds its drivers, kmod and legacy eBPF, from the sources
+	# in /usr/src/kestrel-agent-<version>, and never downloads one
+	EXEPATH=$(dirname "$(readlink -f "${0}")")
+	if [ -z "$SYSDIG_VERSION" ]; then
+		SYSDIG_VERSION=$("${EXEPATH}"/ksagent --version)
+	fi
+	PROBE_NAME="sysdigcloud-probe"
+	BPF_PROBE_NAME="sysdigcloud-probe-bpf"
+	PACKAGE_NAME="kestrel-agent"
+	KESTREL=1
+	if [ -v SYSDIG_FORCE_DOWNLOAD_PROBE ]; then
+		echo "SYSDIG_FORCE_DOWNLOAD_PROBE is not supported by ${SCRIPT_NAME}, it never downloads a probe"
+		exit 1
+	fi
+	# Skips the downloads, see load_kernel_probe and load_bpf_probe
+	SYSDIG_FORCE_BUILD_PROBE=1
 elif [ "${SCRIPT_NAME}" = "sysdigcloud-probe-loader" ]; then
 	EXEPATH=$(dirname "$(readlink -f "${0}")")
 	if [ -z "$SYSDIG_VERSION" ]; then
@@ -707,7 +740,7 @@ elif [ "${SCRIPT_NAME}" = "sysdigcloud-probe-loader" ]; then
 	BPF_PROBE_NAME="sysdigcloud-probe-bpf"
 	PACKAGE_NAME="draios-agent"
 else
-	echo "This script must be called as sysdig-probe-loader or sysdigcloud-probe-loader"
+	echo "This script must be called as sysdig-probe-loader, sysdigcloud-probe-loader or kestrel-probe-loader"
 	exit 1
 fi
 
@@ -716,7 +749,7 @@ if [ "$(id -u)" != 0 ]; then
 	exit 1
 fi
 
-if [ "$SYSDIG_AGENT_DRIVER" != universal_ebpf ]; then
+if [ "$SYSDIG_AGENT_DRIVER" != universal_ebpf ] && [ -z "${KESTREL}" ]; then
 	if ! hash curl > /dev/null 2>&1; then
 		echo "This program requires curl"
 		exit 1
