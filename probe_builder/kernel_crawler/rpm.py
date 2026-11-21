@@ -127,7 +127,10 @@ class RpmMirror(repo.Mirror):
         dists.raise_for_status()
         dists = dists.content
         doc = html.fromstring(dists, self.base_url)
-        dists = doc.xpath('/html/body//a[not(@href="../")]/@href')
+        # Huawei Cloud loves do things differently
+        # Their page uses a table ouside body tags
+        # this additional filter catch it
+        dists = doc.xpath('/html/body//a[not(@href="../")]/@href | //table/tbody//a[not(@href="../")]/@href')
 
         # On 2025-10-09 Almalinux started adding ./ prefix to all paths -- remove it if present
         dists = [d[2:] if d.startswith('./') else d for d in dists]
