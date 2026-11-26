@@ -43,10 +43,12 @@ class CentosBuilder(DistroBuilder):
     def incomplete_kernel_reason(self, release, target):
         # The config comes from kernel-core, the headers/sources from kernel-devel.
         # A custom kernel may only have one of the two, so report it instead of failing.
-        if not any(os.path.isfile(p) for p in self.config_paths(release, target)):
-            return 'kernel-core missing: no config under {}'.format(target)
-        if not os.path.isdir(os.path.join(target, 'usr/src/kernels', release)):
-            return 'kernel-devel missing: no usr/src/kernels/{} under {}'.format(release, target)
+        config_paths = self.config_paths(release, target)
+        if not any(os.path.isfile(p) for p in config_paths):
+            return 'kernel-core missing: expected one of {}'.format(', '.join(config_paths))
+        devel_path = os.path.join(target, 'usr/src/kernels', release)
+        if not os.path.isdir(devel_path):
+            return 'kernel-devel missing: expected directory {}'.format(devel_path)
         return None
 
     def get_kernel_dir(self, workspace, release, target):
