@@ -26,11 +26,28 @@ class CentosBuilder(DistroBuilder):
 
         return kernel_dirs
 
+    @staticmethod
+    def config_paths(release, target):
+        # Candidate locations of the kernel config, in order of preference.
+        # The config ships in kernel-core.
+        return [
+            os.path.join(target, 'boot/config-{}'.format(release)),
+            os.path.join(target, 'lib/modules/{}/config'.format(release)),
+        ]
+
     def hash_config(self, release, target):
-        try:
-            return self.md5sum(os.path.join(target, 'boot/config-{}'.format(release)))
-        except IOError:
-            return self.md5sum(os.path.join(target, 'lib/modules/{}/config'.format(release)))
+        paths = self.config_paths(release, target)
+        # Fall back to the last candidate so a missing config raises the same error as before.
+        return self.md5sum(next((p for p in paths if os.path.isfile(p)), paths[-1]))
+
+    def incomplete_kernel_reason(self, release, target):
+        # The config comes from kernel-core, the headers/sources from kernel-devel.
+        # A custom kernel may only have one of the two, so report it instead of failing.
+        if not any(os.path.isfile(p) for p in self.config_paths(release, target)):
+            return 'kernel-core missing: no config under {}'.format(target)
+        if not os.path.isdir(os.path.join(target, 'usr/src/kernels', release)):
+            return 'kernel-devel missing: no usr/src/kernels/{} under {}'.format(release, target)
+        return None
 
     def get_kernel_dir(self, workspace, release, target):
         return workspace.subdir(target, 'usr/src/kernels', release)

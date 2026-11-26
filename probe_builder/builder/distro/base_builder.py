@@ -68,6 +68,11 @@ class DistroBuilder(object):
     def hash_config(self, release, target):
         raise NotImplementedError
 
+    def incomplete_kernel_reason(self, release, target):
+        """Return a human-readable reason if the unpacked kernel tree at target
+        lacks files needed to build, or None if it is complete."""
+        return None
+
     def get_kernel_dir(self, workspace, release, target):
         raise NotImplementedError
 
@@ -109,6 +114,12 @@ class DistroBuilder(object):
                 return cls.ProbeBuildResult(cls.ProbeBuildResult.BUILD_FAILED, took, stdout)
 
     def build_kernel(self, ignorelist, workspace, probe, builder_distro, release, target, overwrite=False):
+        incomplete_reason = self.incomplete_kernel_reason(release, target)
+        if incomplete_reason:
+            logger.warning("Skipping kernel {}: {}".format(release, incomplete_reason))
+            skipped = self.ProbeBuildResult(self.ProbeBuildResult.BUILD_SKIPPED, 0)
+            return self.KernelBuildResult(skipped, skipped)
+
         config_hash = self.hash_config(release, target)
         output_dir = workspace.subdir('output')
 
